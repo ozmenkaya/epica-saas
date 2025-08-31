@@ -4,6 +4,7 @@
 from flask import Flask, request, session, redirect, url_for, render_template, flash, jsonify, g, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user, login_required
+from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import os
@@ -20,9 +21,9 @@ class Config:
     # Güvenlik
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'epica-saas-2025-super-secret-key'
     
-    # Domain Configuration
-    MAIN_DOMAIN = 'localhost:5001'  # Development için
-    SUBDOMAIN_REGEX = r'^([a-zA-Z0-9-]+)\.localhost:5001$'
+    # Domain Configuration  
+    MAIN_DOMAIN = os.environ.get('MAIN_DOMAIN', 'localhost:5001')  # Development için
+    SUBDOMAIN_REGEX = r'^([a-zA-Z0-9-]+)\.' + re.escape(os.environ.get('MAIN_DOMAIN', 'localhost:5001')) + '$'
     
     # SaaS Planları ve Limitler
     PLANS = {
@@ -72,6 +73,10 @@ app.config.from_object(Config)
 from models_saas import db, Tenant, User, Customer, Supplier, Product, Category
 from models_saas import PlatformAdmin, AuditLog, PriceRequest, Proposal
 db.init_app(app)
+
+# Mail
+mail = Mail()
+mail.init_app(app)
 
 # Login Manager
 login_manager = LoginManager()
