@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma Kaydı - Epica</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .register-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .register-card {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+        .plan-card {
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        .plan-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .plan-card.selected {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        .step-indicator {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step-line {
+            height: 2px;
+            background: #e9ecef;
+            flex: 1;
+            margin: 0 10px;
+        }
+        .step-line.active {
+            background: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container d-flex align-items-center py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card register-card">
+                        <div class="card-header bg-white border-0 text-center py-4">
+                            <h3 class="fw-bold text-primary mb-2">
+                                <i class="bi bi-graph-up me-2"></i>Epica'ya Hoş Geldiniz
+                            </h3>
+                            <p class="text-muted mb-0">Firmanız için teklif yönetim hesabı oluşturun</p>
+                            
+                            <!-- Step Indicator -->
+                            <div class="d-flex align-items-center justify-content-center mt-4">
+                                <div class="step-indicator">1</div>
+                                <div class="step-line active"></div>
+                                <div class="step-indicator" style="background: #e9ecef; color: #6c757d;">2</div>
+                                <div class="step-line"></div>
+                                <div class="step-indicator" style="background: #e9ecef; color: #6c757d;">3</div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-4 text-center">
+                                    <small class="text-primary fw-bold">Firma Bilgileri</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Plan Seçimi</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Admin Hesabı</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-5">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+
+                            <form method="POST" id="registrationForm">
+                                <!-- Firma Bilgileri -->
+                                <div class="step-content" id="step1">
+                                    <h5 class="fw-bold mb-4">
+                                        <i class="bi bi-building me-2 text-primary"></i>Firma Bilgileri
+                                    </h5>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="company_name" class="form-label fw-bold">Şirket Adı *</label>
+                                            <input type="text" class="form-control" id="company_name" name="company_name" 
+                                                   placeholder="Örn: ABC Teknoloji Ltd. Şti." required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="subdomain" class="form-label fw-bold">Alt Domain *</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="subdomain" name="subdomain" 
+                                                       placeholder="firmaismi" pattern="[a-zA-Z0-9-]+" 
+                                                       title="Sadece harf, rakam ve tire kullanabilirsiniz" required>
+                                                <span class="input-group-text">.epica.com.tr</span>
+                                            </div>
+                                            <div class="form-text">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    Firmanız bu adresten erişim sağlayacak
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="contact_name" class="form-label fw-bold">İletişim Kişisi *</label>
+                                            <input type="text" class="form-control" id="contact_name" name="contact_name" 
+                                                   placeholder="Ad Soyad" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="contact_email" class="form-label fw-bold">E-posta *</label>
+                                            <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                                                   placeholder="email@firma.com" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="contact_phone" class="form-label fw-bold">Telefon</label>
+                                            <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                                                   placeholder="0212 xxx xx xx">
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+                                            Devam Et <i class="bi bi-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Plan Seçimi -->
+                                <div class="step-content d-none" id="step2">
+                                    <h5 class="fw-bold mb-4">
+                                        <i class="bi bi-credit-card me-2 text-primary"></i>Plan Seçimi
+                                    </h5>
+                                    
+                                    <div class="row g-3">
+                                        {% for plan_key, plan in plans.items() %}
+                                        <div class="col-md-6 {% if plan_key == 'pro' %}col-lg-6{% else %}col-lg-3{% endif %}">
+                                            <div class="plan-card p-3 h-100 {% if plan_key == 'pro' %}selected{% endif %}" 
+                                                 onclick="selectPlan('{{ plan_key }}')">
+                                                <input type="radio" name="plan" value="{{ plan_key }}" 
+                                                       class="d-none" {% if plan_key == 'pro' %}checked{% endif %}>
+                                                
+                                                {% if plan_key == 'pro' %}
+                                                <div class="badge bg-primary mb-2">ÖNERİLEN</div>
+                                                {% endif %}
+                                                
+                                                <h6 class="fw-bold">{{ plan.name }}</h6>
+                                                <div class="h4 fw-bold text-primary mb-2">
+                                                    {% if plan.monthly_fee == 0 %}
+                                                        Ücretsiz
+                                                    {% else %}
+                                                        ₺{{ "{:,.0f}".format(plan.monthly_fee) }}
+                                                        <small class="text-muted fs-6">/ay</small>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <ul class="list-unstyled small">
+                                                    <li><i class="bi bi-check text-success me-2"></i>{{ plan.max_users }} kullanıcı</li>
+                                                    <li><i class="bi bi-check text-success me-2"></i>{{ plan.max_customers }} müşteri</li>
+                                                    <li><i class="bi bi-check text-success me-2"></i>{{ plan.max_suppliers }} tedarikçi</li>
+                                                    <li><i class="bi bi-check text-success me-2"></i>{{ plan.max_monthly_requests }} aylık teklif</li>
+                                                    
+                                                    {% if plan_key == 'trial' %}
+                                                    <li class="text-warning">
+                                                        <i class="bi bi-clock me-2"></i>{{ plan.duration_days }} gün deneme
+                                                    </li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                            <i class="bi bi-arrow-left me-1"></i> Geri
+                                        </button>
+                                        <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+                                            Devam Et <i class="bi bi-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Admin Hesabı -->
+                                <div class="step-content d-none" id="step3">
+                                    <h5 class="fw-bold mb-4">
+                                        <i class="bi bi-person-check me-2 text-primary"></i>Admin Hesabı
+                                    </h5>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="admin_username" class="form-label fw-bold">Kullanıcı Adı *</label>
+                                            <input type="text" class="form-control" id="admin_username" name="admin_username" 
+                                                   placeholder="admin" minlength="3" required>
+                                            <div class="form-text">En az 3 karakter</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="admin_password" class="form-label fw-bold">Şifre *</label>
+                                            <input type="password" class="form-control" id="admin_password" name="admin_password" 
+                                                   placeholder="••••••••" minlength="6" required>
+                                            <div class="form-text">En az 6 karakter</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Bu hesap firma admin hesabınız olacak.</strong><br>
+                                        Sisteme ilk girişinizi bu bilgilerle yapacak ve diğer kullanıcıları yönetebileceksiniz.
+                                    </div>
+
+                                    <div class="form-check mb-4">
+                                        <input class="form-check-input" type="checkbox" id="agreement" required>
+                                        <label class="form-check-label" for="agreement">
+                                            <a href="#" class="text-decoration-none">Kullanım Şartları</a> ve 
+                                            <a href="#" class="text-decoration-none">Gizlilik Politikası</a>'nı okudum, kabul ediyorum.
+                                        </label>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                            <i class="bi bi-arrow-left me-1"></i> Geri
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="bi bi-rocket me-2"></i>Hesabı Oluştur
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="card-footer bg-light text-center">
+                            <small class="text-muted">
+                                Zaten hesabınız var mı? 
+                                <a href="{{ url_for('platform_login') }}" class="text-primary text-decoration-none">Giriş yapın</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function nextStep(step) {
+            // Mevcut adımı doğrula
+            if (step === 2) {
+                if (!validateStep1()) return;
+            } else if (step === 3) {
+                if (!validateStep2()) return;
+            }
+            
+            // Adımları gizle/göster
+            document.querySelectorAll('.step-content').forEach(el => el.classList.add('d-none'));
+            document.getElementById('step' + step).classList.remove('d-none');
+            
+            // Step indicator güncelle
+            updateStepIndicator(step);
+        }
+        
+        function prevStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.add('d-none'));
+            document.getElementById('step' + step).classList.remove('d-none');
+            updateStepIndicator(step);
+        }
+        
+        function updateStepIndicator(activeStep) {
+            const indicators = document.querySelectorAll('.step-indicator');
+            const lines = document.querySelectorAll('.step-line');
+            
+            indicators.forEach((indicator, index) => {
+                if (index + 1 <= activeStep) {
+                    indicator.style.background = '#667eea';
+                    indicator.style.color = 'white';
+                } else {
+                    indicator.style.background = '#e9ecef';
+                    indicator.style.color = '#6c757d';
+                }
+            });
+            
+            lines.forEach((line, index) => {
+                if (index + 1 < activeStep) {
+                    line.classList.add('active');
+                } else {
+                    line.classList.remove('active');
+                }
+            });
+        }
+        
+        function validateStep1() {
+            const companyName = document.getElementById('company_name').value.trim();
+            const subdomain = document.getElementById('subdomain').value.trim();
+            const contactName = document.getElementById('contact_name').value.trim();
+            const contactEmail = document.getElementById('contact_email').value.trim();
+            
+            if (!companyName || !subdomain || !contactName || !contactEmail) {
+                alert('Lütfen tüm zorunlu alanları doldurun.');
+                return false;
+            }
+            
+            // Subdomain format kontrolü
+            if (!/^[a-zA-Z0-9-]+$/.test(subdomain)) {
+                alert('Subdomain sadece harf, rakam ve tire içerebilir.');
+                return false;
+            }
+            
+            if (subdomain.length < 3 || subdomain.length > 20) {
+                alert('Subdomain 3-20 karakter arası olmalıdır.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function validateStep2() {
+            const plan = document.querySelector('input[name="plan"]:checked');
+            if (!plan) {
+                alert('Lütfen bir plan seçin.');
+                return false;
+            }
+            return true;
+        }
+        
+        function selectPlan(planKey) {
+            // Tüm plan kartlarından selected sınıfını kaldır
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Seçilen planın kartına selected sınıfını ekle
+            event.currentTarget.classList.add('selected');
+            
+            // Radio button'ı seç
+            document.querySelector(`input[name="plan"][value="${planKey}"]`).checked = true;
+        }
+        
+        // Subdomain otomatik oluşturma
+        document.getElementById('company_name').addEventListener('input', function() {
+            const companyName = this.value.trim();
+            const subdomain = companyName
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '') // Özel karakterleri kaldır
+                .replace(/\s+/g, '-') // Boşlukları tire ile değiştir
+                .replace(/-+/g, '-') // Çoklu tireleri tek tire yap
+                .substr(0, 20); // Max 20 karakter
+            
+            document.getElementById('subdomain').value = subdomain;
+        });
+        
+        // Form submit sırasında tüm adımları doğrula
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            if (!validateStep1() || !validateStep2()) {
+                e.preventDefault();
+                return false;
+            }
+            
+            const adminUsername = document.getElementById('admin_username').value.trim();
+            const adminPassword = document.getElementById('admin_password').value;
+            const agreement = document.getElementById('agreement').checked;
+            
+            if (!adminUsername || adminUsername.length < 3) {
+                e.preventDefault();
+                alert('Admin kullanıcı adı en az 3 karakter olmalıdır.');
+                return false;
+            }
+            
+            if (!adminPassword || adminPassword.length < 6) {
+                e.preventDefault();
+                alert('Admin şifresi en az 6 karakter olmalıdır.');
+                return false;
+            }
+            
+            if (!agreement) {
+                e.preventDefault();
+                alert('Kullanım şartlarını kabul etmeniz gerekir.');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

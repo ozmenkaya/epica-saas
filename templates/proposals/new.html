@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Teklif - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Teklif
+                </h1>
+                <a href="{{ url_for('proposals') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-file-earmark-plus me-2"></i>Teklif Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" id="customer_select_hidden" name="customer_select" value="">
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="title" class="form-label">Teklif Başlığı *</label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                       placeholder="Örn: Web Sitesi Geliştirme Projesi">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="currency" class="form-label">Para Birimi</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="TL">₺ Türk Lirası</option>
+                                    <option value="EUR">€ Euro</option>
+                                    <option value="USD">$ Dolar</option>
+                                    <option value="GBP">£ Pound</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="description" class="form-label">Açıklama</label>
+                                <textarea class="form-control" id="description" name="description" rows="4"
+                                          placeholder="Projenin detaylarını açıklayın..."></textarea>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="mb-3"><i class="bi bi-person me-2"></i>Müşteri Bilgileri</h6>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="customer_select" class="form-label">Kayıtlı Müşteri Seç (Opsiyonel)</label>
+                                <select class="form-select" id="customer_select" onchange="fillCustomerInfo()">
+                                    <option value="">-- Yeni müşteri bilgilerini manuel girin --</option>
+                                    <!-- Bu bölüm JavaScript ile doldurulacak -->
+                                </select>
+                                <small class="text-muted">Kayıtlı müşteriniz varsa listeden seçebilirsiniz</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="client_name" class="form-label">Müşteri Adı *</label>
+                                <input type="text" class="form-control" id="client_name" name="client_name" required
+                                       placeholder="Müşteri/Firma adı">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="client_email" class="form-label">E-posta</label>
+                                <input type="email" class="form-control" id="client_email" name="client_email"
+                                       placeholder="musteri@ornek.com">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="client_phone" class="form-label">Telefon</label>
+                                <input type="tel" class="form-control" id="client_phone" name="client_phone"
+                                       placeholder="+90 555 123 45 67">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-end h-100">
+                                    <a href="{{ url_for('new_customer') }}" class="btn btn-outline-primary w-100" target="_blank">
+                                        <i class="bi bi-person-plus me-2"></i>Yeni Müşteri Ekle
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                                <i class="bi bi-x-circle me-2"></i>İptal
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Teklifi Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    let customers = [];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Müşteri listesini yükle
+        loadCustomers();
+        
+        // URL'den customer_id parametresi varsa müşteriyi otomatik seç
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerId = urlParams.get('customer_id');
+        if (customerId) {
+            setTimeout(() => {
+                const customerSelect = document.getElementById('customer_select');
+                customerSelect.value = customerId;
+                fillCustomerInfo();
+            }, 500);
+        }
+    });
+    
+    function loadCustomers() {
+        fetch('/api/customers')
+            .then(response => response.json())
+            .then(data => {
+                customers = data.customers;
+                const select = document.getElementById('customer_select');
+                
+                // Mevcut option'ları temizle (ilk option hariç)
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
+                
+                // Müşterileri ekle
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = customer.name + (customer.company ? ` (${customer.company})` : '');
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Müşteriler yüklenirken hata:', error);
+            });
+    }
+    
+    function fillCustomerInfo() {
+        const select = document.getElementById('customer_select');
+        const selectedId = parseInt(select.value);
+        
+        // Hidden field'ı güncelle
+        document.getElementById('customer_select_hidden').value = select.value;
+        
+        if (selectedId) {
+            const customer = customers.find(c => c.id === selectedId);
+            if (customer) {
+                document.getElementById('client_name').value = customer.name;
+                document.getElementById('client_email').value = customer.email || '';
+                document.getElementById('client_phone').value = customer.phone || '';
+            }
+        } else {
+            // Temizle
+            document.getElementById('client_name').value = '';
+            document.getElementById('client_email').value = '';
+            document.getElementById('client_phone').value = '';
+        }
+    }
+    
+    // Form validasyonu
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const clientName = document.getElementById('client_name').value.trim();
+        
+        if (!title || !clientName) {
+            e.preventDefault();
+            alert('Lütfen zorunlu alanları doldurun.');
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

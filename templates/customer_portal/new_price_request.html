@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Fiyat Talebi - Müşteri Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="bi bi-file-text me-3"></i>Yeni Fiyat Talebi
+                            </h2>
+                            <p class="mb-0">Birden fazla ürün ve hizmet için teklif alın</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('customer_dashboard') }}" class="btn btn-light">
+                                <i class="bi bi-arrow-left me-2"></i>Geri
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="priceRequestForm">
+        <div class="row">
+            <!-- Sol Taraf - Talep Bilgileri -->
+            <div class="col-lg-8">
+                <!-- Genel Bilgiler -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle me-2"></i>Genel Bilgiler
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="title" class="form-label fw-bold">Talep Başlığı *</label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                       placeholder="Örn: Ofis Mobilyaları ve Ekipmanları">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="description" class="form-label fw-bold">Genel Açıklama *</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required
+                                          placeholder="Fiyat talebinizin genel açıklamasını yazın..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="deadline" class="form-label fw-bold">Son Tarih</label>
+                                <input type="date" class="form-control" id="deadline" name="deadline">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="priority" class="form-label fw-bold">Öncelik</label>
+                                <select class="form-select" id="priority" name="priority">
+                                    <option value="low">Düşük</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="high">Yüksek</option>
+                                    <option value="urgent">Acil</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="additional_notes" class="form-label fw-bold">Ek Notlar</label>
+                                <textarea class="form-control" id="additional_notes" name="additional_notes" rows="2"
+                                          placeholder="Varsa ek açıklamalarınızı yazın..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ürün/Hizmet Listesi -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-ul me-2"></i>Ürün/Hizmet Listesi
+                        </h5>
+                        <button type="button" class="btn btn-primary btn-sm" id="addItemBtn">
+                            <i class="bi bi-plus-lg me-1"></i>Yeni Ekle
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="itemsList">
+                            <!-- İlk ürün/hizmet formu -->
+                            <div class="item-form border rounded p-3 mb-3" data-item="0">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="text-primary mb-0">
+                                        <i class="bi bi-box me-1"></i>Ürün/Hizmet #1
+                                    </h6>
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn" style="display: none;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <label class="form-label fw-bold">Ürün/Hizmet Adı *</label>
+                                        <input type="text" class="form-control" name="items[0][name]" required
+                                               placeholder="Örn: Ofis Masası, Web Tasarım Hizmeti">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Kategori</label>
+                                        <select class="form-select" name="items[0][category_id]">
+                                            <option value="">Kategori seçin...</option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label fw-bold">Açıklama</label>
+                                        <textarea class="form-control" name="items[0][description]" rows="2"
+                                                  placeholder="Bu ürün/hizmetle ilgili detayları yazın..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Miktar *</label>
+                                        <input type="number" class="form-control" name="items[0][quantity]" min="1" value="1" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Birim *</label>
+                                        <select class="form-select" name="items[0][unit]">
+                                            <option value="Adet">Adet</option>
+                                            <option value="Kg">Kg</option>
+                                            <option value="Metre">Metre</option>
+                                            <option value="Saat">Saat</option>
+                                            <option value="Gün">Gün</option>
+                                            <option value="Ay">Ay</option>
+                                            <option value="Paket">Paket</option>
+                                            <option value="Set">Set</option>
+                                            <option value="Diğer">Diğer</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Tahmini Birim Bütçe</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" name="items[0][budget_min]" 
+                                                   placeholder="Min" step="0.01">
+                                            <span class="input-group-text">-</span>
+                                            <input type="number" class="form-control" name="items[0][budget_max]" 
+                                                   placeholder="Max" step="0.01">
+                                            <span class="input-group-text">TL</span>
+                                        </div>
+                                        <small class="form-text text-muted">Birim fiyat aralığınız (isteğe bağlı)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-primary" id="addAnotherItemBtn">
+                                <i class="bi bi-plus-circle me-2"></i>Başka Ürün/Hizmet Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Taraf - Özet ve Gönder -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clipboard-check me-2"></i>Talep Özeti
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="requestSummary">
+                            <p class="text-muted">Ürün/hizmet ekledikçe özet burada görünecek...</p>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-send me-2"></i>Talebi Gönder
+                            </button>
+                            <a href="{{ url_for('customer_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>İptal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+let itemCount = 1;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addItemBtn = document.getElementById('addItemBtn');
+    const addAnotherItemBtn = document.getElementById('addAnotherItemBtn');
+    const itemsList = document.getElementById('itemsList');
+
+    // Bugünden sonraki tarihleri deadline olarak ayarla
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('deadline').min = tomorrow.toISOString().split('T')[0];
+
+    // Yeni ürün/hizmet ekleme
+    function addNewItem() {
+        const itemHtml = `
+            <div class="item-form border rounded p-3 mb-3" data-item="${itemCount}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-primary mb-0">
+                        <i class="bi bi-box me-1"></i>Ürün/Hizmet #${itemCount + 1}
+                    </h6>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-bold">Ürün/Hizmet Adı *</label>
+                        <input type="text" class="form-control" name="items[${itemCount}][name]" required
+                               placeholder="Örn: Ofis Masası, Web Tasarım Hizmeti">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Kategori</label>
+                        <select class="form-select" name="items[${itemCount}][category_id]">
+                            <option value="">Kategori seçin...</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold">Açıklama</label>
+                        <textarea class="form-control" name="items[${itemCount}][description]" rows="2"
+                                  placeholder="Bu ürün/hizmetle ilgili detayları yazın..."></textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Miktar *</label>
+                        <input type="number" class="form-control" name="items[${itemCount}][quantity]" min="1" value="1" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Birim *</label>
+                        <select class="form-select" name="items[${itemCount}][unit]">
+                            <option value="Adet">Adet</option>
+                            <option value="Kg">Kg</option>
+                            <option value="Metre">Metre</option>
+                            <option value="Saat">Saat</option>
+                            <option value="Gün">Gün</option>
+                            <option value="Ay">Ay</option>
+                            <option value="Paket">Paket</option>
+                            <option value="Set">Set</option>
+                            <option value="Diğer">Diğer</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Tahmini Birim Bütçe</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="items[${itemCount}][budget_min]" 
+                                   placeholder="Min" step="0.01">
+                            <span class="input-group-text">-</span>
+                            <input type="number" class="form-control" name="items[${itemCount}][budget_max]" 
+                                   placeholder="Max" step="0.01">
+                            <span class="input-group-text">TL</span>
+                        </div>
+                        <small class="form-text text-muted">Birim fiyat aralığınız (isteğe bağlı)</small>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        itemsList.insertAdjacentHTML('beforeend', itemHtml);
+        itemCount++;
+        updateSummary();
+        updateRemoveButtons();
+    }
+
+    // Ürün/hizmet silme
+    function removeItem(button) {
+        button.closest('.item-form').remove();
+        updateSummary();
+        updateRemoveButtons();
+        updateItemNumbers();
+    }
+
+    // Remove butonlarını güncelle
+    function updateRemoveButtons() {
+        const items = document.querySelectorAll('.item-form');
+        const removeButtons = document.querySelectorAll('.remove-item-btn');
+        
+        removeButtons.forEach((btn, index) => {
+            btn.style.display = items.length > 1 ? 'block' : 'none';
+        });
+    }
+
+    // Ürün numaralarını güncelle
+    function updateItemNumbers() {
+        const items = document.querySelectorAll('.item-form');
+        items.forEach((item, index) => {
+            const title = item.querySelector('h6');
+            title.innerHTML = `<i class="bi bi-box me-1"></i>Ürün/Hizmet #${index + 1}`;
+        });
+    }
+
+    // Özeti güncelle
+    function updateSummary() {
+        const items = document.querySelectorAll('.item-form');
+        const summary = document.getElementById('requestSummary');
+        
+        if (items.length === 0) {
+            summary.innerHTML = '<p class="text-muted">Henüz ürün/hizmet eklenmedi...</p>';
+            return;
+        }
+
+        let summaryHtml = `<div class="mb-2"><strong>Toplam ${items.length} ürün/hizmet:</strong></div>`;
+        
+        items.forEach((item, index) => {
+            const name = item.querySelector('[name*="[name]"]').value || `Ürün/Hizmet #${index + 1}`;
+            const quantity = item.querySelector('[name*="[quantity]"]').value || '1';
+            const unit = item.querySelector('[name*="[unit]"]').value || 'Adet';
+            
+            summaryHtml += `
+                <div class="border-start border-primary ps-2 mb-2">
+                    <small class="text-muted">#${index + 1}</small><br>
+                    <strong>${name}</strong><br>
+                    <span class="text-muted">${quantity} ${unit}</span>
+                </div>
+            `;
+        });
+
+        summary.innerHTML = summaryHtml;
+    }
+
+    // Event listeners
+    addItemBtn.addEventListener('click', addNewItem);
+    addAnotherItemBtn.addEventListener('click', addNewItem);
+
+    // Delegation for remove buttons
+    itemsList.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-item-btn')) {
+            removeItem(e.target.closest('.remove-item-btn'));
+        }
+    });
+
+    // Input değişikliklerini dinle
+    itemsList.addEventListener('input', updateSummary);
+
+    // Form validation
+    document.getElementById('priceRequestForm').addEventListener('submit', function(e) {
+        const items = document.querySelectorAll('.item-form');
+        if (items.length === 0) {
+            e.preventDefault();
+            alert('En az bir ürün/hizmet eklemelisiniz!');
+            return false;
+        }
+
+        // Her ürün/hizmet için isim kontrolü
+        let hasEmptyName = false;
+        items.forEach(item => {
+            const nameInput = item.querySelector('[name*="[name]"]');
+            if (!nameInput.value.trim()) {
+                hasEmptyName = true;
+                nameInput.focus();
+            }
+        });
+
+        if (hasEmptyName) {
+            e.preventDefault();
+            alert('Tüm ürün/hizmet adlarını doldurmalısınız!');
+            return false;
+        }
+    });
+
+    // İlk özeti oluştur
+    updateSummary();
+});
+</script>
+{% endblock %}

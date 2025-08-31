@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Tedarikçi - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Tedarikçi
+                </h1>
+                <a href="{{ url_for('suppliers') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-truck me-2"></i>Tedarikçi Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Temel Bilgiler -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-info-circle me-2"></i>Temel Bilgiler
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="company" class="form-label">Şirket Adı *</label>
+                                <input type="text" class="form-control" id="company" name="company" required
+                                       placeholder="Örn: ABC Teknoloji Ltd.">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Yetkili Adı</label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                       placeholder="Örn: Ahmet Yılmaz">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_person" class="form-label">İletişim Kişisi</label>
+                                <input type="text" class="form-control" id="contact_person" name="contact_person"
+                                       placeholder="Örn: Satış Müdürü - Mehmet Demir">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">Kategori</label>
+                                <select class="form-select" id="category" name="category">
+                                    <option value="">Kategori Seçin</option>
+                                    <option value="Yazılım">Yazılım</option>
+                                    <option value="Donanım">Donanım</option>
+                                    <option value="Hizmet">Hizmet</option>
+                                    <option value="Pazarlama">Pazarlama</option>
+                                    <option value="Danışmanlık">Danışmanlık</option>
+                                    <option value="Tasarım">Tasarım</option>
+                                    <option value="İnsan Kaynakları">İnsan Kaynakları</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <!-- İletişim Bilgileri -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-telephone me-2"></i>İletişim Bilgileri
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">E-posta</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="info@sirket.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Portal Şifresi</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="Portal girişi için şifre" required>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Tedarikçi bu şifre ile portal sistemine giriş yapabilecek
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Telefon</label>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                       placeholder="+90 (212) 123 4567">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="website" class="form-label">Web Sitesi</label>
+                                <input type="url" class="form-control" id="website" name="website"
+                                       placeholder="https://www.sirket.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tax_number" class="form-label">Vergi Numarası</label>
+                                <input type="text" class="form-control" id="tax_number" name="tax_number"
+                                       placeholder="1234567890">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adres</label>
+                            <textarea class="form-control" id="address" name="address" rows="3"
+                                      placeholder="Tam adres bilgisi..."></textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <!-- İş Bilgileri -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-briefcase me-2"></i>İş Bilgileri
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="payment_terms" class="form-label">Ödeme Koşulları</label>
+                                <select class="form-select" id="payment_terms" name="payment_terms">
+                                    <option value="">Ödeme Koşulu Seçin</option>
+                                    <option value="Peşin">Peşin</option>
+                                    <option value="15 Gün">15 Gün</option>
+                                    <option value="30 Gün">30 Gün</option>
+                                    <option value="45 Gün">45 Gün</option>
+                                    <option value="60 Gün">60 Gün</option>
+                                    <option value="90 Gün">90 Gün</option>
+                                    <option value="Taksitli">Taksitli</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="rating" class="form-label">Değerlendirme</label>
+                                <select class="form-select" id="rating" name="rating">
+                                    <option value="5">⭐⭐⭐⭐⭐ Mükemmel (5/5)</option>
+                                    <option value="4">⭐⭐⭐⭐☆ İyi (4/5)</option>
+                                    <option value="3">⭐⭐⭐☆☆ Orta (3/5)</option>
+                                    <option value="2">⭐⭐☆☆☆ Zayıf (2/5)</option>
+                                    <option value="1">⭐☆☆☆☆ Çok Zayıf (1/5)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notlar</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                      placeholder="Tedarikçi hakkında özel notlar..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('suppliers') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Tedarikçiyi Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const company = document.getElementById('company').value.trim();
+            
+            if (!company) {
+                e.preventDefault();
+                alert('Şirket adı zorunludur!');
+                document.getElementById('company').focus();
+                return false;
+            }
+        });
+
+        // Website URL format validation
+        const websiteInput = document.getElementById('website');
+        websiteInput.addEventListener('blur', function() {
+            let url = this.value.trim();
+            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                this.value = 'https://' + url;
+            }
+        });
+
+        // Phone number formatting
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.length <= 3) {
+                    value = `(${value}`;
+                } else if (value.length <= 6) {
+                    value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                } else if (value.length <= 10) {
+                    value = `(${value.slice(0, 3)}) ${value.slice(3, 6)} ${value.slice(6)}`;
+                } else {
+                    value = `(${value.slice(0, 3)}) ${value.slice(3, 6)} ${value.slice(6, 10)}`;
+                }
+            }
+            e.target.value = value;
+        });
+    });
+</script>
+{% endblock %}

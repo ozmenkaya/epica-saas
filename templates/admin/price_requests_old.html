@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Fiyat Talepleri - Yönetim{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-card-checklist me-2"></i>Fiyat Talepleri
+        </h1>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
+                <option value="">Tüm Durumlar</option>
+                <option value="pending">Bekleyen</option>
+                <option value="approved">Onaylanan</option>
+                <option value="assigned">Atanan</option>
+                <option value="completed">Tamamlanan</option>
+                <option value="cancelled">İptal Edilen</option>
+            </select>
+        </div>
+    </div>
+
+    {% if price_requests %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Talep</th>
+                                        <th scope="col">Müşteri</th>
+                                        <th scope="col">Kategori</th>
+                                        <th scope="col">Miktar</th>
+                                        <th scope="col">Bütçe</th>
+                                        <th scope="col">Durum</th>
+                                        <th scope="col">Tarih</th>
+                                        <th scope="col" class="text-center">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for price_request in price_requests %}
+                                    <tr data-status="{{ price_request.status }}">
+                                        <td>
+                                            <div class="fw-medium">{{ price_request.title }}</div>
+                                            {% if price_request.description %}
+                                            <small class="text-muted">{{ price_request.description[:50] }}{% if price_request.description|length > 50 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium">{{ price_request.customer.company or price_request.customer.name }}</div>
+                                            <small class="text-muted">{{ price_request.customer.name }}</small>
+                                        </td>
+                                        <td>
+                                            {% if price_request.items %}
+                                                <span class="badge bg-info">{{ price_request.items|length }} kalem</span>
+                                                {% if price_request.items[0].category %}
+                                                    <br><small class="text-muted">{{ price_request.items[0].category.name }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Ürün yok</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if price_request.items %}
+                                                {% set total_quantity = price_request.items|sum(attribute='quantity') %}
+                                                <div class="fw-medium">{{ total_quantity }} toplam</div>
+                                                <small class="text-muted">
+                                                    {% for item in price_request.items[:2] %}
+                                                        {{ item.quantity }} {{ item.unit }}{% if not loop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                    {% if price_request.items|length > 2 %}...{% endif %}
+                                                </small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if price_request.items %}
+                                                {% set items_with_budget = price_request.items|selectattr('budget_min')|list %}
+                                                {% if items_with_budget %}
+                                                    {% set min_budget = items_with_budget|min(attribute='budget_min') %}
+                                                    {% set max_budget = items_with_budget|max(attribute='budget_max') if items_with_budget|selectattr('budget_max')|list else None %}
+                                                    <span class="text-success">
+                                                        {{ "{:,.0f}".format(min_budget.budget_min) }}{% if max_budget and max_budget.budget_max %} - {{ "{:,.0f}".format(max_budget.budget_max) }}{% endif %} TL
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">Belirtilmedi</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.status == 'pending' %}
+                                                <span class="badge bg-warning">Bekleyen</span>
+                                            {% elif request.status == 'approved' %}
+                                                <span class="badge bg-info">Onaylanan</span>
+                                            {% elif request.status == 'assigned' %}
+                                                <span class="badge bg-primary">Atanan</span>
+                                            {% elif request.status == 'completed' %}
+                                                <span class="badge bg-success">Tamamlanan</span>
+                                            {% elif request.status == 'cancelled' %}
+                                                <span class="badge bg-danger">İptal</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>{{ request.created_at.strftime('%d.%m.%Y') }}</div>
+                                            <small class="text-muted">{{ request.created_at.strftime('%H:%M') }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{{ url_for('admin_view_price_request', id=request.id) }}" 
+                                                   class="btn btn-outline-primary" title="Detay Görüntüle">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                {% if request.status == 'pending' %}
+                                                <button type="button" class="btn btn-outline-success" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#approveModal{{ request.id }}" 
+                                                        title="Onayla">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#rejectModal{{ request.id }}" 
+                                                        title="Reddet">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onay Modalleri -->
+        {% for request in price_requests %}
+        {% if request.status == 'pending' %}
+        <!-- Onay Modal -->
+        <div class="modal fade" id="approveModal{{ request.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ url_for('admin_approve_price_request', id=request.id) }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Fiyat Talebini Onayla</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <strong>Talep:</strong> {{ request.title }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="adminNotes{{ request.id }}" class="form-label">Admin Notları</label>
+                                <textarea class="form-control" id="adminNotes{{ request.id }}" name="admin_notes" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="assignedSupplier{{ price_request.id }}" class="form-label">Tedarikçi Ata (İsteğe Bağlı)</label>
+                                <select class="form-select" id="assignedSupplier{{ price_request.id }}" name="assigned_supplier_id">
+                                    <option value="">Tedarikçi seçin...</option>
+                                    {% for supplier in suppliers %}
+                                    {% if supplier.is_active %}
+                                    <option value="{{ supplier.id }}">{{ supplier.company }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Tedarikçi seçerseniz talep doğrudan o tedarikçiye atanır.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="submit" class="btn btn-success">Onayla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reddetme Modal -->
+        <div class="modal fade" id="rejectModal{{ request.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ url_for('admin_reject_price_request', id=request.id) }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Fiyat Talebini Reddet</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <strong>Talep:</strong> {{ request.title }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="rejectNotes{{ request.id }}" class="form-label">Reddetme Sebebi</label>
+                                <textarea class="form-control" id="rejectNotes{{ request.id }}" name="admin_notes" rows="3" required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="submit" class="btn btn-danger">Reddet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-card-checklist display-1 text-muted mb-3"></i>
+                        <h4 class="text-muted">Henüz fiyat talebi yok</h4>
+                        <p class="text-muted">Müşteriler fiyat talebi oluşturduğunda burada görünecek.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Durum filtreleme
+    const statusFilter = document.getElementById('statusFilter');
+    const tableRows = document.querySelectorAll('tbody tr[data-status]');
+    
+    statusFilter.addEventListener('change', function() {
+        const selectedStatus = this.value;
+        
+        tableRows.forEach(row => {
+            if (selectedStatus === '' || row.dataset.status === selectedStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}{{ supplier.company }} - Tedarikçi Detayı{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-truck me-2"></i>{{ supplier.company }}
+                    {% if not supplier.is_active %}
+                    <span class="badge bg-secondary ms-2">Pasif</span>
+                    {% endif %}
+                </h1>
+                <div>
+                    <a href="{{ url_for('edit_supplier', id=supplier.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Düzenle
+                    </a>
+                    <a href="{{ url_for('suppliers') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Kolon - Temel Bilgiler -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Temel Bilgiler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Şirket Adı</label>
+                                <div class="fw-medium">{{ supplier.company }}</div>
+                            </div>
+                            
+                            {% if supplier.name %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Yetkili Adı</label>
+                                <div class="fw-medium">{{ supplier.name }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if supplier.contact_person %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">İletişim Kişisi</label>
+                                <div class="fw-medium">{{ supplier.contact_person }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if supplier.category %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Kategori</label>
+                                <div>
+                                    <span class="badge bg-primary">{{ supplier.category }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {% if supplier.email %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">E-posta</label>
+                                <div>
+                                    <a href="mailto:{{ supplier.email }}" class="text-decoration-none">
+                                        <i class="bi bi-envelope me-2"></i>{{ supplier.email }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if supplier.phone %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Telefon</label>
+                                <div>
+                                    <a href="tel:{{ supplier.phone }}" class="text-decoration-none">
+                                        <i class="bi bi-telephone me-2"></i>{{ supplier.phone }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if supplier.website %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Web Sitesi</label>
+                                <div>
+                                    <a href="{{ supplier.website }}" target="_blank" class="text-decoration-none">
+                                        <i class="bi bi-globe me-2"></i>{{ supplier.website }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if supplier.tax_number %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Vergi Numarası</label>
+                                <div class="fw-medium">{{ supplier.tax_number }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if supplier.address %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Adres</label>
+                                <div class="fw-medium">{{ supplier.address }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- İş Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-briefcase me-2"></i>İş Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% if supplier.payment_terms %}
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Ödeme Koşulları</label>
+                                <div class="fw-medium">
+                                    <i class="bi bi-credit-card me-2 text-primary"></i>{{ supplier.payment_terms }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Durum</label>
+                                <div>
+                                    {% if supplier.is_active %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Aktif
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-pause-circle me-1"></i>Pasif
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Değerlendirme</label>
+                                <div class="text-warning">
+                                    {% for i in range(5) %}
+                                        {% if i < supplier.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2 text-muted">({{ supplier.rating }}/5)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if supplier.notes %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Notlar</label>
+                                <div class="fw-medium">{{ supplier.notes }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Kolon - Özet ve Eylemler -->
+        <div class="col-lg-4">
+            <!-- Özet Bilgiler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Özet
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Ekleme Tarihi:</small>
+                        <div class="fw-bold">{{ supplier.created_at.strftime('%d.%m.%Y') }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Son Güncelleme:</small>
+                        <div class="fw-bold">{{ supplier.updated_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hızlı Eylemler -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>Hızlı Eylemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if supplier.email %}
+                        <a href="mailto:{{ supplier.email }}" class="btn btn-outline-primary">
+                            <i class="bi bi-envelope me-2"></i>E-posta Gönder
+                        </a>
+                        {% endif %}
+                        
+                        {% if supplier.phone %}
+                        <a href="tel:{{ supplier.phone }}" class="btn btn-outline-success">
+                            <i class="bi bi-telephone me-2"></i>Ara
+                        </a>
+                        {% endif %}
+                        
+                        {% if supplier.website %}
+                        <a href="{{ supplier.website }}" target="_blank" class="btn btn-outline-info">
+                            <i class="bi bi-globe me-2"></i>Web Sitesini Ziyaret Et
+                        </a>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <form method="POST" action="{{ url_for('toggle_supplier_status', id=supplier.id) }}">
+                            <button type="submit" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-power me-2"></i>
+                                {{ 'Pasifleştir' if supplier.is_active else 'Aktifleştir' }}
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="btn btn-outline-danger" 
+                                onclick="deleteSupplier({{ supplier.id }}, '{{ supplier.company }}')">
+                            <i class="bi bi-trash me-2"></i>Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tedarikçiyi Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-supplier-name"></strong> tedarikçisini silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger small">Bu işlem geri alınamaz.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="delete-form" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function deleteSupplier(supplierId, supplierName) {
+        document.getElementById('delete-supplier-name').textContent = supplierName;
+        document.getElementById('delete-form').action = `/supplier/${supplierId}/delete`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

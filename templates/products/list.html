@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Ürünler - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-box me-2"></i>Ürün Yönetimi
+                </h1>
+                <a href="{{ url_for('new_product') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Ürün
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Arama ve Filtreler -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control" id="search-input" placeholder="Ürün ara...">
+            </div>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="category-filter">
+                <option value="">Tüm Kategoriler</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="type-filter">
+                <option value="">Tümü</option>
+                <option value="product">Ürün</option>
+                <option value="service">Hizmet</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="status-filter">
+                <option value="">Tüm Durumlar</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Pasif</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="stock-filter">
+                <option value="">Tüm Stoklar</option>
+                <option value="in-stock">Stokta</option>
+                <option value="low-stock">Düşük Stok</option>
+                <option value="out-of-stock">Stok Yok</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if products %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ürün</th>
+                                    <th>SKU</th>
+                                    <th class="text-center">Tür</th>
+                                    <th class="text-center">Stok</th>
+                                    <th class="text-end">Alış</th>
+                                    <th class="text-end">Satış</th>
+                                    <th class="text-center">KDV%</th>
+                                    <th class="text-center">Durum</th>
+                                    <th width="120">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table">
+                                {% for product in products %}
+                                <tr class="product-row" 
+                                    data-name="{{ product.name|lower }}" 
+                                    data-category="{{ product.category_id or '' }}"
+                                    data-type="{{ 'service' if product.is_service else 'product' }}"
+                                    data-status="{{ 'active' if product.is_active else 'inactive' }}"
+                                    data-stock="{{ 'out-of-stock' if product.stock_quantity == 0 else ('low-stock' if product.is_low_stock else 'in-stock') }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="fw-medium">{{ product.name }}</div>
+                                                {% if product.brand or product.model %}
+                                                <small class="text-muted">
+                                                    {{ product.brand }}{% if product.brand and product.model %} - {% endif %}{{ product.model }}
+                                                </small>
+                                                {% endif %}
+                                                {% if product.category_info %}
+                                                <div class="d-flex align-items-center mt-1">
+                                                    <div style="width: 8px; height: 8px; border-radius: 2px; background-color: {{ product.category_info.color or '#6c757d' }}; margin-right: 4px;"></div>
+                                                    <span class="badge bg-light text-dark">
+                                                        <i class="{{ product.category_info.icon or 'bi-tag' }} me-1"></i>
+                                                        {{ product.category_info.name }}
+                                                    </span>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if product.sku %}
+                                        <code class="small">{{ product.sku }}</code>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if product.is_service %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-gear me-1"></i>Hizmet
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-box me-1"></i>Ürün
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if product.is_service %}
+                                        <span class="text-muted">-</span>
+                                        {% else %}
+                                            {% if product.stock_quantity == 0 %}
+                                            <span class="badge bg-danger">Yok</span>
+                                            {% elif product.is_low_stock %}
+                                            <span class="badge bg-warning text-dark">
+                                                {{ product.stock_quantity }} {{ product.unit }}
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-success">
+                                                {{ product.stock_quantity }} {{ product.unit }}
+                                            </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if product.purchase_price > 0 %}
+                                        <span class="text-muted">₺{{ "{:,.2f}".format(product.purchase_price) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="fw-medium">₺{{ "{:,.2f}".format(product.sale_price) }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="small">%{{ product.tax_rate }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if product.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Pasif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                                    data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ url_for('view_product', id=product.id) }}">
+                                                        <i class="bi bi-eye me-2"></i>Görüntüle
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ url_for('edit_product', id=product.id) }}">
+                                                        <i class="bi bi-pencil me-2"></i>Düzenle
+                                                    </a>
+                                                </li>
+                                                {% if not product.is_service %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item" 
+                                                            onclick="showStockModal({{ product.id }}, '{{ product.name }}')">
+                                                        <i class="bi bi-plus-square me-2"></i>Stok İşlemi
+                                                    </button>
+                                                </li>
+                                                {% endif %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('toggle_product_status', id=product.id) }}" class="d-inline">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="bi bi-power me-2"></i>
+                                                            {{ 'Pasifleştir' if product.is_active else 'Aktifleştir' }}
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger" 
+                                                            onclick="deleteProduct({{ product.id }}, '{{ product.name }}')">
+                                                        <i class="bi bi-trash me-2"></i>Sil
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-box display-1 text-muted mb-3"></i>
+                <h5 class="text-muted">Henüz ürün eklenmemiş</h5>
+                <p class="text-muted">İlk ürününüzü eklemek için aşağıdaki butona tıklayın.</p>
+                <a href="{{ url_for('new_product') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>İlk Ürünü Ekle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stok İşlemi Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Stok İşlemi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="stock-form" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ürün</label>
+                        <div id="stock-product-name" class="fw-medium"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="operation" class="form-label">İşlem Türü</label>
+                        <select class="form-select" id="operation" name="operation" required>
+                            <option value="add">Stok Ekle</option>
+                            <option value="remove">Stok Çıkar</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Miktar</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" 
+                               min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">İşlemi Uygula</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ürünü Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-product-name"></strong> ürünü silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger small">Bu işlem geri alınamaz.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="delete-form" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Filtreleme
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const typeFilter = document.getElementById('type-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const stockFilter = document.getElementById('stock-filter');
+        const productRows = document.querySelectorAll('.product-row');
+
+        function filterProducts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value.toLowerCase();
+            const selectedType = typeFilter.value;
+            const selectedStatus = statusFilter.value;
+            const selectedStock = stockFilter.value;
+
+            productRows.forEach(row => {
+                const name = row.dataset.name;
+                const category = row.dataset.category;
+                const type = row.dataset.type;
+                const status = row.dataset.status;
+                const stock = row.dataset.stock;
+
+                const matchesSearch = name.includes(searchTerm);
+                const matchesCategory = !selectedCategory || category === selectedCategory;
+                const matchesType = !selectedType || type === selectedType;
+                const matchesStatus = !selectedStatus || status === selectedStatus;
+                const matchesStock = !selectedStock || stock === selectedStock;
+
+                if (matchesSearch && matchesCategory && matchesType && matchesStatus && matchesStock) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
+        typeFilter.addEventListener('change', filterProducts);
+        statusFilter.addEventListener('change', filterProducts);
+        stockFilter.addEventListener('change', filterProducts);
+    });
+
+    function showStockModal(productId, productName) {
+        document.getElementById('stock-product-name').textContent = productName;
+        document.getElementById('stock-form').action = `/product/${productId}/update-stock`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('stockModal'));
+        modal.show();
+    }
+
+    function deleteProduct(productId, productName) {
+        document.getElementById('delete-product-name').textContent = productName;
+        document.getElementById('delete-form').action = `/product/${productId}/delete`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

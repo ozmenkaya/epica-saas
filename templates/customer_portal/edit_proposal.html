@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Teklif Düzenle - Müşteri Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="bi bi-pencil me-3"></i>Teklif Düzenle
+                            </h2>
+                            <p class="mb-0">{{ proposal.title }} - ID: #{{ proposal.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('customer_dashboard') }}" class="btn btn-dark">
+                                <i class="bi bi-arrow-left me-2"></i>Geri
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="proposalEditForm">
+        <div class="row">
+            <!-- Sol Taraf - Teklif Bilgileri -->
+            <div class="col-lg-8">
+                <!-- Genel Bilgiler -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle me-2"></i>Teklif Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="title" class="form-label fw-bold">Teklif Başlığı *</label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                       value="{{ proposal.title }}"
+                                       placeholder="Örn: Ofis Mobilyaları Teklifi">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="description" class="form-label fw-bold">Açıklama</label>
+                                <textarea class="form-control" id="description" name="description" rows="6"
+                                          placeholder="Teklif detaylarını yazın...">{{ proposal.description or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Teklif Bilgileri (Salt okunur) -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Oluşturma Tarihi</label>
+                                <input type="text" class="form-control" 
+                                       value="{{ proposal.created_at.strftime('%d.%m.%Y %H:%M') }}" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Son Güncelleme</label>
+                                <input type="text" class="form-control" 
+                                       value="{{ proposal.updated_at.strftime('%d.%m.%Y %H:%M') if proposal.updated_at else '-' }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Durum</label>
+                                <input type="text" class="form-control" value="Taslak" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Toplam Tutar</label>
+                                <input type="text" class="form-control" 
+                                       value="{{ proposal.total_amount }}₺" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kalemler (Salt okunur) -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-ul me-2"></i>Teklif Kalemleri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if proposal.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Ürün/Hizmet</th>
+                                        <th>Miktar</th>
+                                        <th>Birim Fiyat</th>
+                                        <th>Toplam</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in proposal.items %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ item.name }}</strong>
+                                            {% if item.description %}
+                                            <br><small class="text-muted">{{ item.description }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ item.quantity }} Adet</td>
+                                        <td>{{ item.unit_price }}₺</td>
+                                        <td>{{ item.total_price }}₺</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="fw-bold">
+                                        <td colspan="3">Toplam</td>
+                                        <td>{{ proposal.total_amount }}₺</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-list display-4 text-muted"></i>
+                            <p class="text-muted mt-2">Bu teklifte henüz kalem bulunmuyor.</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Not:</strong> Teklif kalemlerini düzenlemek için ana teklif yönetim panelini kullanın.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Taraf - Özet ve Kaydet -->
+            <div class="col-lg-4">
+                <div class="card sticky-top">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clipboard-check me-2"></i>Düzenleme Özeti
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Müşteri:</strong><br>
+                            {{ current_customer.name }}<br>
+                            <small class="text-muted">{{ current_customer.company }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Teklif ID:</strong><br>
+                            <span class="badge bg-primary">#{{ proposal.id }}</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Durum:</strong><br>
+                            <span class="badge bg-secondary">Taslak</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Toplam Kalem:</strong><br>
+                            <span class="badge bg-info">{{ proposal.items|length }} kalem</span>
+                        </div>
+
+                        <hr>
+
+                        <button type="submit" class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-check-circle me-2"></i>Güncellemeleri Kaydet
+                        </button>
+
+                        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-outline-secondary w-100 mb-2">
+                            <i class="bi bi-arrow-left me-2"></i>Dashboard'a Dön
+                        </a>
+
+                        <div class="small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Sadece başlık ve açıklama bilgileri düzenlenebilir.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Form validasyonu
+document.getElementById('proposalEditForm').addEventListener('submit', function(e) {
+    const title = document.getElementById('title').value.trim();
+    
+    if (!title) {
+        e.preventDefault();
+        alert('Teklif başlığı gereklidir.');
+        document.getElementById('title').focus();
+        return;
+    }
+});
+</script>
+{% endblock %}

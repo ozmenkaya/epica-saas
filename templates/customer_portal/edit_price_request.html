@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Fiyat Talebi Düzenle - Müşteri Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="bi bi-pencil me-3"></i>Fiyat Talebi Düzenle
+                            </h2>
+                            <p class="mb-0">{{ price_request.title }} - ID: #{{ price_request.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('customer_dashboard') }}" class="btn btn-dark">
+                                <i class="bi bi-arrow-left me-2"></i>Geri
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="priceRequestForm">
+        <div class="row">
+            <!-- Sol Taraf - Talep Bilgileri -->
+            <div class="col-lg-8">
+                <!-- Genel Bilgiler -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle me-2"></i>Genel Bilgiler
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="title" class="form-label fw-bold">Talep Başlığı *</label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                       value="{{ price_request.title }}"
+                                       placeholder="Örn: Ofis Mobilyaları ve Ekipmanları">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="priority" class="form-label fw-bold">Öncelik</label>
+                                <select class="form-select" id="priority" name="priority">
+                                    <option value="low" {{ 'selected' if price_request.priority == 'low' else '' }}>Düşük</option>
+                                    <option value="normal" {{ 'selected' if price_request.priority == 'normal' else '' }}>Normal</option>
+                                    <option value="high" {{ 'selected' if price_request.priority == 'high' else '' }}>Yüksek</option>
+                                    <option value="urgent" {{ 'selected' if price_request.priority == 'urgent' else '' }}>Acil</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="deadline" class="form-label fw-bold">Son Teklif Tarihi</label>
+                                <input type="date" class="form-control" id="deadline" name="deadline"
+                                       value="{{ price_request.deadline.strftime('%Y-%m-%d') if price_request.deadline else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="description" class="form-label fw-bold">Açıklama</label>
+                                <textarea class="form-control" id="description" name="description" rows="4"
+                                          placeholder="Talebin detaylarını açıklayın...">{{ price_request.description or '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ürün/Hizmet Kalemleri -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-list-ul me-2"></i>Ürün/Hizmet Kalemleri
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-success" onclick="addItem()">
+                                <i class="bi bi-plus-circle me-1"></i>Kalem Ekle
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="items-container">
+                            <!-- Mevcut kalemler JavaScript ile yüklenecek -->
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Bilgi:</strong> Her kalem için ayrı ayrı kategori, miktar ve bütçe belirleyebilirsiniz.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Taraf - Özet ve Gönder -->
+            <div class="col-lg-4">
+                <div class="card sticky-top">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clipboard-check me-2"></i>Talep Özeti
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Müşteri:</strong><br>
+                            {{ current_customer.name }}<br>
+                            <small class="text-muted">{{ current_customer.company }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Toplam Kalem:</strong><br>
+                            <span id="total-items" class="badge bg-primary">0</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Durum:</strong><br>
+                            <span class="badge bg-secondary">Taslak</span>
+                        </div>
+
+                        <hr>
+
+                        <button type="submit" class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-check-circle me-2"></i>Güncellemeleri Kaydet
+                        </button>
+
+                        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-outline-secondary w-100 mb-2">
+                            <i class="bi bi-arrow-left me-2"></i>Dashboard'a Dön
+                        </a>
+
+                        <div class="small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Fiyat talebiniz güncellendikten sonra tekrar değerlendirmeye alınacaktır.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Kalem Template (Hidden) -->
+<div id="item-template" style="display: none;">
+    <div class="item-row border rounded p-3 mb-3" style="background-color: #f8f9fa;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="text-primary mb-0">
+                <i class="bi bi-box me-2"></i>Kalem <span class="item-number">1</span>
+            </h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label fw-bold">Ürün/Hizmet Adı *</label>
+                <input type="text" class="form-control item-name" required
+                       placeholder="Örn: Ofis Masası">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Kategori</label>
+                <select class="form-select item-category">
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Açıklama</label>
+                <textarea class="form-control item-description" rows="2"
+                          placeholder="Ürün/hizmetin detaylarını açıklayın..."></textarea>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Miktar *</label>
+                <input type="number" class="form-control item-quantity" min="1" value="1" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Birim</label>
+                <select class="form-select item-unit">
+                    <option value="Adet">Adet</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Litre">Litre</option>
+                    <option value="Metre">Metre</option>
+                    <option value="M²">M²</option>
+                    <option value="M³">M³</option>
+                    <option value="Saat">Saat</option>
+                    <option value="Gün">Gün</option>
+                    <option value="Aylık">Aylık</option>
+                    <option value="Yıllık">Yıllık</option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">Tahmini Bütçe</label>
+                <div class="input-group">
+                    <input type="number" class="form-control item-budget-min" placeholder="Min" min="0" step="0.01">
+                    <span class="input-group-text">-</span>
+                    <input type="number" class="form-control item-budget-max" placeholder="Max" min="0" step="0.01">
+                    <span class="input-group-text">₺</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let itemCounter = 0;
+
+// Sayfa yüklendiğinde mevcut kalemleri yükle
+document.addEventListener('DOMContentLoaded', function() {
+    loadExistingItems();
+});
+
+function loadExistingItems() {
+    const existingItems = [
+        {% for item in items %}
+        {
+            id: {{ item.id }},
+            name: "{{ item.name }}",
+            description: "{{ item.description or '' }}",
+            quantity: {{ item.quantity }},
+            unit: "{{ item.unit }}",
+            category_id: {{ item.category_id }},
+            budget_min: {{ item.budget_min or 0 }},
+            budget_max: {{ item.budget_max or 0 }}
+        },
+        {% endfor %}
+    ];
+
+    existingItems.forEach(function(item) {
+        addItem(item);
+    });
+
+    if (existingItems.length === 0) {
+        addItem(); // Eğer hiç kalem yoksa en az bir tane ekle
+    }
+}
+
+function addItem(existingData = null) {
+    itemCounter++;
+    
+    const template = document.getElementById('item-template');
+    const clone = template.cloneNode(true);
+    clone.id = '';
+    clone.style.display = 'block';
+    
+    // Item numarasını güncelle
+    clone.querySelector('.item-number').textContent = itemCounter;
+    
+    // Eğer mevcut veri varsa doldur
+    if (existingData) {
+        clone.querySelector('.item-name').value = existingData.name;
+        clone.querySelector('.item-description').value = existingData.description;
+        clone.querySelector('.item-quantity').value = existingData.quantity;
+        clone.querySelector('.item-unit').value = existingData.unit;
+        clone.querySelector('.item-category').value = existingData.category_id;
+        clone.querySelector('.item-budget-min').value = existingData.budget_min > 0 ? existingData.budget_min : '';
+        clone.querySelector('.item-budget-max').value = existingData.budget_max > 0 ? existingData.budget_max : '';
+    }
+    
+    document.getElementById('items-container').appendChild(clone);
+    updateItemCount();
+}
+
+function removeItem(button) {
+    const itemRow = button.closest('.item-row');
+    itemRow.remove();
+    updateItemNumbers();
+    updateItemCount();
+}
+
+function updateItemNumbers() {
+    const items = document.querySelectorAll('.item-number');
+    items.forEach((item, index) => {
+        item.textContent = index + 1;
+    });
+}
+
+function updateItemCount() {
+    const count = document.querySelectorAll('.item-row').length;
+    document.getElementById('total-items').textContent = count;
+}
+
+// Form gönderimi
+document.getElementById('priceRequestForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const items = [];
+    const itemRows = document.querySelectorAll('.item-row');
+    
+    // Kalem bilgilerini topla
+    itemRows.forEach(function(row) {
+        const item = {
+            name: row.querySelector('.item-name').value.trim(),
+            description: row.querySelector('.item-description').value.trim(),
+            quantity: parseFloat(row.querySelector('.item-quantity').value) || 1,
+            unit: row.querySelector('.item-unit').value,
+            category_id: parseInt(row.querySelector('.item-category').value),
+            budget_min: parseFloat(row.querySelector('.item-budget-min').value) || null,
+            budget_max: parseFloat(row.querySelector('.item-budget-max').value) || null
+        };
+        
+        if (item.name) {
+            items.push(item);
+        }
+    });
+    
+    if (items.length === 0) {
+        alert('En az bir ürün/hizmet kalemi eklemeniz gerekir.');
+        return;
+    }
+    
+    // Kalemleri form'a ekle
+    items.forEach(function(item, index) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'items';
+        input.value = JSON.stringify(item);
+        this.appendChild(input);
+    }.bind(this));
+    
+    // Form'u gönder
+    this.submit();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,689 @@
+{% extends "base.html" %}
+
+{% block title %}{{ proposal.title }} - Teklif Düzenle{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-pencil me-2"></i>Teklif Düzenle
+                </h1>
+                <div>
+                    <a href="{{ url_for('view_proposal', id=proposal.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-eye me-2"></i>Görüntüle
+                    </a>
+                    <a href="{{ url_for('proposal_pdf', id=proposal.id) }}" class="btn btn-success" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>PDF İndir
+                    </a>
+                    <a href="{{ url_for('proposals') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teklif Bilgileri -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-file-earmark-text me-2"></i>Teklif Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="proposal-form" onsubmit="event.preventDefault(); updateProposal();">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="title" class="form-label">Teklif Başlığı *</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="{{ proposal.title }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="currency" class="form-label">Para Birimi</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="TL" {% if proposal.currency == 'TL' %}selected{% endif %}>₺ Türk Lirası</option>
+                                    <option value="EUR" {% if proposal.currency == 'EUR' %}selected{% endif %}>€ Euro</option>
+                                    <option value="USD" {% if proposal.currency == 'USD' %}selected{% endif %}>$ Dolar</option>
+                                    <option value="GBP" {% if proposal.currency == 'GBP' %}selected{% endif %}>£ Pound</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="description" class="form-label">Açıklama</label>
+                                <textarea class="form-control" id="description" name="description" rows="4">{{ proposal.description or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="mb-3"><i class="bi bi-person me-2"></i>İlişkili Firmalar</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="customer_id" class="form-label">Müşteri</label>
+                                <select class="form-select" id="customer_id" name="customer_id">
+                                    <option value="">Müşteri Seçin</option>
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.id }}" {{ 'selected' if proposal.customer_id == customer.id else '' }}>
+                                        {{ customer.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="supplier_id" class="form-label">Tedarikçi</label>
+                                <select class="form-select" id="supplier_id" name="supplier_id">
+                                    <option value="">Tedarikçi Seçin</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" {{ 'selected' if proposal.supplier_id == supplier.id else '' }}>
+                                        {{ supplier.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="mb-3"><i class="bi bi-person me-2"></i>Müşteri Bilgileri</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="client_name" class="form-label">Müşteri Adı *</label>
+                                <input type="text" class="form-control" id="client_name" name="client_name" 
+                                       value="{{ proposal.client_name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="client_email" class="form-label">E-posta</label>
+                                <input type="email" class="form-control" id="client_email" name="client_email"
+                                       value="{{ proposal.client_email or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="client_phone" class="form-label">Telefon</label>
+                                <input type="tel" class="form-control" id="client_phone" name="client_phone"
+                                       value="{{ proposal.client_phone or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Durum</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="draft" {{ 'selected' if proposal.status == 'draft' else '' }}>Taslak</option>
+                                    <option value="sent" {{ 'selected' if proposal.status == 'sent' else '' }}>Gönderildi</option>
+                                    <option value="approved" {{ 'selected' if proposal.status == 'approved' else '' }}>Onaylandı</option>
+                                    <option value="rejected" {{ 'selected' if proposal.status == 'rejected' else '' }}>Reddedildi</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Bilgileri Güncelle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Özet Bilgiler -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Özet
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Toplam Ürün:</small>
+                        <div class="fw-bold fs-4" id="total-items">{{ proposal.items|length }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Ara Toplam:</small>
+                        <div class="fw-bold fs-5" id="subtotal-amount">{{ proposal.get_currency_symbol() }}0.00</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">KDV Toplam:</small>
+                        <div class="fw-bold fs-5 text-info" id="tax-amount">{{ proposal.get_currency_symbol() }}0.00</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Genel Toplam:</small>
+                        <div class="fw-bold fs-4 text-primary" id="total-amount">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(proposal.total_amount) }}</div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Son Güncelleme:</small>
+                        <div class="small">{{ proposal.updated_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teklif Kalemleri -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-ul me-2"></i>Teklif Ürünleri
+                        </h5>
+                        <button type="button" class="btn btn-success btn-sm" onclick="addNewItem()">
+                            <i class="bi bi-plus-circle me-2"></i>Yeni Ürün
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="items-container">
+                        <!-- Kalemler buraya yüklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kalem Ekleme/Düzenleme Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="item-modal-title">Yeni Ürün Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="item-form">
+                    <input type="hidden" id="item-id" name="item_id">
+                    <input type="hidden" id="product-id" name="product_id">
+                    
+                    <!-- Ürün Seçimi -->
+                    <div class="mb-3">
+                        <label for="product-select" class="form-label">Ürün Seçimi *</label>
+                        <div class="input-group">
+                            <select class="form-select" id="product-select" name="product_select" onchange="selectProduct()">
+                                <option value="">Ürün seçin veya manuel girin</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" onclick="toggleManualEntry()">
+                                <i class="bi bi-pencil"></i> Manuel
+                            </button>
+                        </div>
+                        <small class="text-muted">Mevcut ürünlerden seçin veya manuel olarak girin</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="item-name" class="form-label">Ürün/Hizmet Adı *</label>
+                        <input type="text" class="form-control" id="item-name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="item-description" class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="item-description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="item-quantity" class="form-label">Miktar *</label>
+                            <input type="number" class="form-control" id="item-quantity" name="quantity" 
+                                   min="1" value="1" required onchange="calculateItemTotal()">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="item-unit-price" class="form-label">Birim Fiyat (₺) *</label>
+                            <input type="number" class="form-control" id="item-unit-price" name="unit_price" 
+                                   min="0" step="0.01" required onchange="calculateItemTotal()">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="item-tax-rate" class="form-label">KDV Oranı (%)</label>
+                            <select class="form-select" id="item-tax-rate" name="tax_rate" onchange="calculateItemTotal()">
+                                <option value="0">%0 (KDV Muaf)</option>
+                                <option value="1">%1</option>
+                                <option value="8">%8</option>
+                                <option value="18">%18</option>
+                                <option value="20" selected>%20</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Ara Toplam</label>
+                            <div class="form-control-plaintext fw-bold" id="item-subtotal-display">₺0.00</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">KDV Tutarı</label>
+                            <div class="form-control-plaintext fw-bold text-info" id="item-tax-display">₺0.00</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Toplam Fiyat</label>
+                            <div class="form-control-plaintext fw-bold text-primary" id="item-total-display">₺0.00</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">
+                    <i class="bi bi-check-circle me-2"></i>Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentEditingItemId = null;
+    const proposalId = parseInt('{{ proposal.id }}');
+    let products = [];
+    
+    // Para birimi sembolleri
+    const currencySymbols = {
+        'TL': '₺',
+        'EUR': '€',
+        'USD': '$',
+        'GBP': '£'
+    };
+    
+    // Mevcut para birimini al
+    function getCurrentCurrency() {
+        return document.getElementById('currency').value || 'TL';
+    }
+    
+    // Para birimi sembolünü al
+    function getCurrencySymbol() {
+        return currencySymbols[getCurrentCurrency()];
+    }
+    
+    // Para birimi formatı
+    function formatCurrency(amount) {
+        const symbol = getCurrencySymbol();
+        return symbol + parseFloat(amount).toLocaleString('tr-TR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadItems();
+        loadProducts();
+        
+        // Form submit event
+        document.getElementById('proposal-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateProposal();
+        });
+    });
+    
+    function loadProducts() {
+        fetch('/api/products')
+            .then(response => response.json())
+            .then(data => {
+                products = data.products;
+                const productSelect = document.getElementById('product-select');
+                
+                // Mevcut seçenekleri temizle
+                while (productSelect.children.length > 1) {
+                    productSelect.removeChild(productSelect.lastChild);
+                }
+                
+                // Ürünleri ekle
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.name} - ₺${product.sale_price}`;
+                    option.dataset.product = JSON.stringify(product);
+                    productSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Ürünler yüklenirken hata:', error);
+            });
+    }
+    
+    function loadItems() {
+        fetch(`/api/proposal/${proposalId}/items`)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('items-container');
+                
+                if (data.items.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="bi bi-list-ul display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz ürün eklenmemiş</h5>
+                            <p class="text-muted">İlk ürünü eklemek için "Yeni Ürün" butonuna tıklayın.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let tableHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Ürün Adı</th>
+                                    <th>Açıklama</th>
+                                    <th class="text-center">Miktar</th>
+                                    <th class="text-end">Birim Fiyat</th>
+                                    <th class="text-center">KDV%</th>
+                                    <th class="text-end">Ara Toplam</th>
+                                    <th class="text-end">KDV</th>
+                                    <th class="text-end">Toplam</th>
+                                    <th width="100">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                let totalAmount = 0;
+                let totalSubtotal = 0;
+                let totalTax = 0;
+                
+                data.items.forEach(item => {
+                    totalAmount += item.total_price;
+                    totalSubtotal += item.subtotal;
+                    totalTax += item.tax_amount;
+                    
+                    tableHTML += `
+                        <tr>
+                            <td class="fw-medium">${item.name}</td>
+                            <td>${item.description || '-'}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-end">${formatCurrency(item.unit_price)}</td>
+                            <td class="text-center">%${item.tax_rate}</td>
+                            <td class="text-end">${formatCurrency(item.subtotal)}</td>
+                            <td class="text-end text-info">${formatCurrency(item.tax_amount)}</td>
+                            <td class="text-end fw-bold">${formatCurrency(item.total_price)}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            onclick="editItem(${item.id})" title="Düzenle">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="deleteItem(${item.id})" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += `
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="5" class="text-end">Ara Toplam:</th>
+                                    <th class="text-end">${formatCurrency(totalSubtotal)}</th>
+                                    <th class="text-end text-info">${formatCurrency(totalTax)}</th>
+                                    <th class="text-end text-primary fs-5">${formatCurrency(totalAmount)}</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+                
+                container.innerHTML = tableHTML;
+                
+                // Özet bilgileri güncelle
+                document.getElementById('total-items').textContent = data.items.length;
+                document.getElementById('subtotal-amount').textContent = formatCurrency(totalSubtotal);
+                document.getElementById('tax-amount').textContent = formatCurrency(totalTax);
+                document.getElementById('total-amount').textContent = formatCurrency(totalAmount);
+            })
+            .catch(error => {
+                console.error('Kalemler yüklenirken hata:', error);
+                showAlert('Kalemler yüklenirken hata oluştu.', 'danger');
+            });
+    }
+    
+    function addNewItem() {
+        currentEditingItemId = null;
+        document.getElementById('item-modal-title').textContent = 'Yeni Ürün Ekle';
+        document.getElementById('item-form').reset();
+        document.getElementById('item-id').value = '';
+        document.getElementById('product-id').value = '';
+        document.getElementById('product-select').value = '';
+        document.getElementById('item-tax-rate').value = '20'; // Varsayılan %20
+        calculateItemTotal();
+        
+        const modal = new bootstrap.Modal(document.getElementById('itemModal'));
+        modal.show();
+    }
+    
+    function selectProduct() {
+        const productSelect = document.getElementById('product-select');
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        
+        if (selectedOption.value && selectedOption.dataset.product) {
+            const product = JSON.parse(selectedOption.dataset.product);
+            
+            // Ürün bilgilerini form alanlarına doldur
+            document.getElementById('product-id').value = product.id;
+            document.getElementById('item-name').value = product.name;
+            document.getElementById('item-description').value = product.description || '';
+            document.getElementById('item-unit-price').value = product.sale_price;
+            document.getElementById('item-tax-rate').value = product.tax_rate || 20;
+            document.getElementById('item-quantity').value = 1;
+            
+            // Manuel girişi devre dışı bırak
+            document.getElementById('item-name').setAttribute('readonly', true);
+            document.getElementById('item-unit-price').setAttribute('readonly', true);
+            document.getElementById('item-tax-rate').setAttribute('disabled', true);
+            
+            calculateItemTotal();
+        } else {
+            // Manuel giriş moduna geç
+            toggleManualEntry();
+        }
+    }
+    
+    function toggleManualEntry() {
+        const isManual = document.getElementById('product-select').value === '';
+        
+        if (isManual) {
+            // Manuel giriş modundan ürün seçimine geç
+            loadProducts();
+        } else {
+            // Ürün seçiminden manuel girişe geç
+            document.getElementById('product-select').value = '';
+            document.getElementById('product-id').value = '';
+            document.getElementById('item-name').value = '';
+            document.getElementById('item-description').value = '';
+            document.getElementById('item-unit-price').value = '';
+            document.getElementById('item-tax-rate').value = '20';
+            document.getElementById('item-quantity').value = '1';
+        }
+        
+        // Alan durumlarını güncelle
+        document.getElementById('item-name').removeAttribute('readonly');
+        document.getElementById('item-unit-price').removeAttribute('readonly');
+        document.getElementById('item-tax-rate').removeAttribute('disabled');
+        
+        calculateItemTotal();
+    }
+    
+    function editItem(itemId) {
+        currentEditingItemId = itemId;
+        
+        // API'den kalem bilgilerini al
+        fetch(`/api/proposal/${proposalId}/items`)
+            .then(response => response.json())
+            .then(data => {
+                const item = data.items.find(i => i.id === itemId);
+                if (item) {
+                    document.getElementById('item-modal-title').textContent = 'Kalem Düzenle';
+                    document.getElementById('item-id').value = item.id;
+                    document.getElementById('item-name').value = item.name;
+                    document.getElementById('item-description').value = item.description || '';
+                    document.getElementById('item-quantity').value = item.quantity;
+                    document.getElementById('item-unit-price').value = item.unit_price;
+                    document.getElementById('item-tax-rate').value = item.tax_rate;
+                    calculateItemTotal();
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('itemModal'));
+                    modal.show();
+                }
+            });
+    }
+    
+    function deleteItem(itemId) {
+        if (confirm('Bu kalemi silmek istediğinizden emin misiniz?')) {
+            fetch(`/api/proposal/${proposalId}/item/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Kalem başarıyla silindi.', 'success');
+                    loadItems();
+                } else {
+                    showAlert('Kalem silinirken hata oluştu.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                showAlert('Kalem silinirken hata oluştu.', 'danger');
+            });
+        }
+    }
+    
+    function calculateItemTotal() {
+        const quantity = parseFloat(document.getElementById('item-quantity').value) || 0;
+        const unitPrice = parseFloat(document.getElementById('item-unit-price').value) || 0;
+        const taxRate = parseFloat(document.getElementById('item-tax-rate').value) || 0;
+        
+        const subtotal = quantity * unitPrice;
+        const taxAmount = subtotal * (taxRate / 100);
+        const total = subtotal + taxAmount;
+        
+        document.getElementById('item-subtotal-display').textContent = 
+            `₺${subtotal.toLocaleString('tr-TR', {minimumFractionDigits: 2})}`;
+        document.getElementById('item-tax-display').textContent = 
+            `₺${taxAmount.toLocaleString('tr-TR', {minimumFractionDigits: 2})}`;
+        document.getElementById('item-total-display').textContent = 
+            `₺${total.toLocaleString('tr-TR', {minimumFractionDigits: 2})}`;
+    }
+    
+    function saveItem() {
+        const form = document.getElementById('item-form');
+        const formData = new FormData(form);
+        
+        const itemData = {
+            name: formData.get('name'),
+            description: formData.get('description'),
+            quantity: parseInt(formData.get('quantity')),
+            unit_price: parseFloat(formData.get('unit_price')),
+            tax_rate: parseFloat(formData.get('tax_rate')),
+            product_id: formData.get('product_id') || null
+        };
+        
+        const url = currentEditingItemId 
+            ? `/api/proposal/${proposalId}/item/${currentEditingItemId}`
+            : `/api/proposal/${proposalId}/items`;
+        
+        const method = currentEditingItemId ? 'PUT' : 'POST';
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(itemData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(
+                    currentEditingItemId ? 'Kalem başarıyla güncellendi.' : 'Kalem başarıyla eklendi.',
+                    'success'
+                );
+                loadItems();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('itemModal'));
+                modal.hide();
+            } else {
+                showAlert('İşlem sırasında hata oluştu.', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            showAlert('İşlem sırasında hata oluştu.', 'danger');
+        });
+    }
+    
+    function updateProposal() {
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const customerId = document.getElementById('customer_id').value;
+        const supplierId = document.getElementById('supplier_id').value;
+        const currency = document.getElementById('currency').value;
+        
+        if (!title.trim()) {
+            showAlert('Teklif başlığı gereklidir.', 'danger');
+            return;
+        }
+        
+        const data = {
+            title: title,
+            description: description,
+            customer_id: customerId || null,
+            supplier_id: supplierId || null,
+            currency: currency
+        };
+        
+        fetch(`/api/proposal/${proposalId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Teklif başarıyla güncellendi!', 'success');
+                // Para birimi değişirse, ürün listesini yeniden yükle
+                loadItems();
+            } else {
+                showAlert(data.message || 'Teklif güncellenirken hata oluştu.', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Teklif güncellenirken hata:', error);
+            showAlert('Teklif güncellenirken hata oluştu.', 'danger');
+        });
+    }
+    
+    function showAlert(message, type) {
+        const alertContainer = document.querySelector('.container-fluid');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        alertContainer.insertBefore(alert, alertContainer.firstChild);
+        
+        // 5 saniye sonra otomatik kapat
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}

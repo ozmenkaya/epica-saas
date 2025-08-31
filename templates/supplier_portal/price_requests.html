@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Fiyat Talepleri - Tedarikçi Paneli{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="bi bi-clipboard-data me-3"></i>Fiyat Talepleri
+                            </h2>
+                            <p class="mb-0">Size atanan fiyat taleplerini görüntüleyin ve tekliflerinizi verin</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('supplier_dashboard') }}" class="btn btn-dark">
+                                <i class="bi bi-house-door me-2"></i>Ana Sayfa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menü -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-pills nav-fill">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('supplier_dashboard') }}">
+                                <i class="bi bi-house-door me-2"></i>Ana Sayfa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('supplier_price_requests') }}">
+                                <i class="bi bi-clipboard-data me-2"></i>Fiyat Talepleri
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="alert('Ürün yönetimi yakında eklenecek')">
+                                <i class="bi bi-box-seam me-2"></i>Ürünlerim
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="alert('Teklif geçmişi yakında eklenecek')">
+                                <i class="bi bi-clock-history me-2"></i>Teklif Geçmişi
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtre ve Arama -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="searchInput" placeholder="Talep ara...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="statusFilter">
+                <option value="">Tüm Durumlar</option>
+                <option value="assigned">Yeni Atanan</option>
+                <option value="completed">Teklif Verilmiş</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="priorityFilter">
+                <option value="">Tüm Öncelikler</option>
+                <option value="urgent">Acil</option>
+                <option value="high">Yüksek</option>
+                <option value="medium">Orta</option>
+                <option value="low">Düşük</option>
+            </select>
+        </div>
+    </div>
+
+    {% if price_requests %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Talep</th>
+                                        <th scope="col">Müşteri</th>
+                                        <th scope="col">Miktar</th>
+                                        <th scope="col">Bütçe</th>
+                                        <th scope="col">Öncelik</th>
+                                        <th scope="col">Son Tarih</th>
+                                        <th scope="col">Durum</th>
+                                        <th scope="col" class="text-center">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in price_requests %}
+                                    <tr data-status="{{ request.status }}" data-priority="{{ request.priority }}">
+                                        <td>
+                                            <div class="fw-medium">{{ request.title }}</div>
+                                            {% if request.description %}
+                                            <small class="text-muted">{{ request.description[:50] }}{% if request.description|length > 50 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium">{{ request.customer.company or request.customer.name }}</div>
+                                            <small class="text-muted">{{ request.customer.name }}</small>
+                                        </td>
+                                        <td>
+                                            {{ request.quantity }} {{ request.unit }}
+                                        </td>
+                                        <td>
+                                            {% if request.budget_range %}
+                                                <span class="text-success">{{ request.budget_range }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Belirtilmedi</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.priority == 'urgent' %}
+                                                <span class="badge bg-danger">Acil</span>
+                                            {% elif request.priority == 'high' %}
+                                                <span class="badge bg-warning">Yüksek</span>
+                                            {% elif request.priority == 'medium' %}
+                                                <span class="badge bg-info">Orta</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Düşük</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.deadline %}
+                                                {% if request.deadline < today %}
+                                                    <span class="text-danger fw-bold">{{ request.deadline.strftime('%d.%m.%Y') }}</span>
+                                                    <small class="d-block text-danger">Geçmiş!</small>
+                                                {% else %}
+                                                    {{ request.deadline.strftime('%d.%m.%Y') }}
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Belirtilmedi</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.status == 'assigned' %}
+                                                <span class="badge bg-primary">Teklif Bekliyor</span>
+                                            {% elif request.status == 'completed' %}
+                                                <span class="badge bg-success">Teklif Verildi</span>
+                                                {% if request.supplier_quote %}
+                                                    <small class="d-block text-success">{{ "%.2f"|format(request.supplier_quote) }} TL</small>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{{ url_for('supplier_view_price_request', id=request.id) }}" 
+                                                   class="btn btn-outline-primary" title="Detay Görüntüle">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                {% if request.status == 'assigned' %}
+                                                <a href="{{ url_for('supplier_submit_quote', id=request.id) }}" 
+                                                   class="btn btn-outline-success" title="Teklif Ver">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-clipboard-data display-1 text-muted mb-3"></i>
+                        <h4 class="text-muted">Henüz size atanan fiyat talebi yok</h4>
+                        <p class="text-muted">Admin tarafından size fiyat talebi atandığında burada görünecek.</p>
+                        <a href="{{ url_for('supplier_dashboard') }}" class="btn btn-primary">
+                            <i class="bi bi-house-door me-2"></i>Ana Sayfaya Dön
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const tableRows = document.querySelectorAll('tbody tr[data-status]');
+    
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedStatus = statusFilter.value;
+        const selectedPriority = priorityFilter.value;
+        
+        tableRows.forEach(row => {
+            const title = row.cells[0].textContent.toLowerCase();
+            const customer = row.cells[1].textContent.toLowerCase();
+            const status = row.dataset.status;
+            const priority = row.dataset.priority;
+            
+            const matchesSearch = title.includes(searchTerm) || customer.includes(searchTerm);
+            const matchesStatus = selectedStatus === '' || status === selectedStatus;
+            const matchesPriority = selectedPriority === '' || priority === selectedPriority;
+            
+            if (matchesSearch && matchesStatus && matchesPriority) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    searchInput.addEventListener('input', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+    priorityFilter.addEventListener('change', filterTable);
+});
+</script>
+{% endblock %}

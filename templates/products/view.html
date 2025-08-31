@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Ürün Detayı{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">{{ product.name }}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Ana Sayfa</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('products') }}">Ürünler</a></li>
+                            <li class="breadcrumb-item active">{{ product.name }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="btn-toolbar gap-2">
+                    <a href="{{ url_for('edit_product', id=product.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Düzenle
+                    </a>
+                    <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Kolon - Temel Bilgiler -->
+        <div class="col-lg-8">
+            <!-- Temel Bilgiler Kartı -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Temel Bilgiler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted fw-bold">Ürün Adı:</td>
+                                    <td>{{ product.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">SKU:</td>
+                                    <td>
+                                        {% if product.sku %}
+                                            <code>{{ product.sku }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Kategori:</td>
+                                    <td>
+                                        {% if product.category_info %}
+                                            <div class="d-flex align-items-center">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; background-color: {{ product.category_info.color or '#6c757d' }}; margin-right: 8px;"></div>
+                                                <i class="{{ product.category_info.icon or 'bi-tag' }} me-1"></i>
+                                                <span class="badge" style="background-color: {{ product.category_info.color or '#6c757d' }};">
+                                                    {{ product.category_info.name }}
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Marka:</td>
+                                    <td>{{ product.brand or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Model:</td>
+                                    <td>{{ product.model or '-' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted fw-bold">Tür:</td>
+                                    <td>
+                                        {% if product.is_service %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-gear me-1"></i>Hizmet
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-box me-1"></i>Ürün
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Tedarikçi:</td>
+                                    <td>
+                                        {% if product.supplier %}
+                                            <a href="#" class="text-decoration-none">
+                                                {{ product.supplier.company }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Birim:</td>
+                                    <td>{{ product.unit or 'Adet' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Barkod:</td>
+                                    <td>
+                                        {% if product.barcode %}
+                                            <code>{{ product.barcode }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Ekleme Tarihi:</td>
+                                    <td>{{ product.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if product.description %}
+                    <hr>
+                    <h6 class="text-muted">Açıklama</h6>
+                    <p class="mb-0">{{ product.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Fiyat Bilgileri Kartı -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-currency-exchange me-2"></i>Fiyat Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted small">Alış Fiyatı</div>
+                                <div class="h5 mb-0">
+                                    {% if product.purchase_price %}
+                                        ₺{{ "%.2f"|format(product.purchase_price) }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted small">Satış Fiyatı</div>
+                                <div class="h5 mb-0 text-primary">₺{{ "%.2f"|format(product.sale_price) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted small">KDV Oranı</div>
+                                <div class="h5 mb-0">%{{ product.tax_rate or 20 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted small">Kar Marjı</div>
+                                <div class="h5 mb-0">
+                                    {% if product.purchase_price and product.purchase_price > 0 %}
+                                        {% set margin = ((product.sale_price - product.purchase_price) / product.purchase_price) * 100 %}
+                                        {% if margin > 50 %}
+                                            <span class="text-success">%{{ "%.1f"|format(margin) }}</span>
+                                        {% elif margin > 20 %}
+                                            <span class="text-warning">%{{ "%.1f"|format(margin) }}</span>
+                                        {% else %}
+                                            <span class="text-danger">%{{ "%.1f"|format(margin) }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teknik Özellikler ve Notlar -->
+            {% if product.specifications or product.notes %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-gear me-2"></i>Ek Bilgiler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if product.specifications %}
+                    <h6 class="text-muted">Teknik Özellikler</h6>
+                    <div class="mb-3">
+                        <pre class="bg-light p-3 rounded">{{ product.specifications }}</pre>
+                    </div>
+                    {% endif %}
+                    
+                    {% if product.notes %}
+                    <h6 class="text-muted">Notlar</h6>
+                    <p class="mb-0">{{ product.notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sağ Kolon - Stok ve İstatistikler -->
+        <div class="col-lg-4">
+            <!-- Stok Bilgileri -->
+            {% if not product.is_service %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-boxes me-2"></i>Stok Bilgileri
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showStockModal()">
+                        <i class="bi bi-arrow-up-right me-1"></i>Güncelle
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="display-6 fw-bold">{{ product.stock_quantity or 0 }}</div>
+                        <div class="text-muted">{{ product.unit or 'Adet' }}</div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="text-muted small">Minimum Seviye</div>
+                            <div class="fw-bold">{{ product.min_stock_level or 0 }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted small">Stok Durumu</div>
+                            <div>
+                                {% set stock = product.stock_quantity or 0 %}
+                                {% set min_level = product.min_stock_level or 0 %}
+                                {% if stock <= 0 %}
+                                    <span class="badge bg-danger">Tükendi</span>
+                                {% elif stock <= min_level %}
+                                    <span class="badge bg-warning">Kritik</span>
+                                {% else %}
+                                    <span class="badge bg-success">Normal</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Hızlı İşlemler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>Hızlı İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="addToProposal()">
+                            <i class="bi bi-plus-circle me-2"></i>Teklife Ekle
+                        </button>
+                        {% if not product.is_service %}
+                        <button class="btn btn-outline-success btn-sm" onclick="showStockModal('in')">
+                            <i class="bi bi-arrow-down-circle me-2"></i>Stok Girişi
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="showStockModal('out')">
+                            <i class="bi bi-arrow-up-circle me-2"></i>Stok Çıkışı
+                        </button>
+                        {% endif %}
+                        <a href="{{ url_for('edit_product', id=product.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil me-2"></i>Düzenle
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İstatistikler (Gelecekte kullanım için) -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>İstatistikler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-12 mb-3">
+                            <div class="text-muted small">Toplam Tekliflerde Kullanım</div>
+                            <div class="h6 mb-0">0 defa</div>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        İstatistikler yakında eklenecek...
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stok Güncelleme Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stockModalLabel">Stok Güncelle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="stockForm" method="POST" action="{{ url_for('update_product_stock', id=product.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="operation" class="form-label">İşlem Türü</label>
+                        <select class="form-select" id="operation" name="operation" required>
+                            <option value="set">Stok Miktarını Ayarla</option>
+                            <option value="in">Stok Girişi</option>
+                            <option value="out">Stok Çıkışı</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Miktar</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" 
+                               min="0" step="1" required placeholder="0">
+                        <div class="form-text">
+                            Mevcut stok: <strong>{{ product.stock_quantity or 0 }} {{ product.unit or 'Adet' }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Açıklama</label>
+                        <input type="text" class="form-control" id="reason" name="reason" 
+                               placeholder="İşlem açıklaması...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showStockModal(operation = null) {
+        const modal = new bootstrap.Modal(document.getElementById('stockModal'));
+        const operationSelect = document.getElementById('operation');
+        
+        if (operation) {
+            operationSelect.value = operation;
+        }
+        
+        modal.show();
+    }
+
+    function addToProposal() {
+        // Bu fonksiyon teklif oluşturma sayfasına yönlendirebilir
+        // veya mevcut bir teklife ürün eklemek için kullanılabilir
+        alert('Teklif ekleme özelliği yakında eklenecek...');
+    }
+
+    // Form gönderimi öncesi doğrulama
+    document.getElementById('stockForm').addEventListener('submit', function(e) {
+        const operation = document.getElementById('operation').value;
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const currentStock = parseInt('{{ product.stock_quantity or 0 }}');
+        
+        if (operation === 'out' && quantity > currentStock) {
+            e.preventDefault();
+            alert('Çıkış miktarı mevcut stoktan fazla olamaz!');
+            return false;
+        }
+        
+        if (quantity <= 0) {
+            e.preventDefault();
+            alert('Miktar 0\'dan büyük olmalıdır!');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% block title %}Fiyat Talebi - {{ price_request.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_price_requests') }}">Fiyat Talepleri</a></li>
+                    <li class="breadcrumb-item active">Talep Detayı</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">{{ price_request.title }}</h1>
+        </div>
+        <div>
+            {% if price_request.status == 'pending' %}
+                <button type="button" class="btn btn-success me-2" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#approveModal">
+                    <i class="bi bi-check-lg me-1"></i>Onayla
+                </button>
+                <button type="button" class="btn btn-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#rejectModal">
+                    <i class="bi bi-x-lg me-1"></i>Reddet
+                </button>
+            {% elif price_request.status == 'approved' %}
+                <button type="button" class="btn btn-primary" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#assignModal">
+                    <i class="bi bi-person-plus me-1"></i>Tedarikçi Ata
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Taraf - Talep Detayları -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Talep Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Başlık</label>
+                            <p class="form-control-plaintext">{{ price_request.title }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Durum</label>
+                            <div>
+                                {% if price_request.status == 'pending' %}
+                                    <span class="badge bg-warning fs-6">Bekleyen</span>
+                                {% elif price_request.status == 'approved' %}
+                                    <span class="badge bg-info fs-6">Onaylanan</span>
+                                {% elif price_request.status == 'assigned' %}
+                                    <span class="badge bg-primary fs-6">Atanan</span>
+                                {% elif price_request.status == 'completed' %}
+                                    <span class="badge bg-success fs-6">Tamamlanan</span>
+                                {% elif price_request.status == 'cancelled' %}
+                                    <span class="badge bg-danger fs-6">İptal</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if price_request.description %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Açıklama</label>
+                        <p class="form-control-plaintext">{{ price_request.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Miktar</label>
+                            <p class="form-control-plaintext">{{ price_request.quantity }} {{ price_request.unit }}</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Bütçe Aralığı</label>
+                            <p class="form-control-plaintext">
+                                {% if price_request.budget_range %}
+                                    {{ price_request.budget_range }}
+                                {% else %}
+                                    <span class="text-muted">Belirtilmedi</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Öncelik</label>
+                            <div>
+                                {% if price_request.priority == 'urgent' %}
+                                    <span class="badge bg-danger">Acil</span>
+                                {% elif price_request.priority == 'high' %}
+                                    <span class="badge bg-warning">Yüksek</span>
+                                {% elif price_request.priority == 'medium' %}
+                                    <span class="badge bg-info">Orta</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Düşük</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Kategori</label>
+                            <p class="form-control-plaintext">
+                                {% if price_request.category %}
+                                    {{ price_request.category.name }}
+                                {% else %}
+                                    <span class="text-muted">Kategori yok</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Son Tarih</label>
+                            <p class="form-control-plaintext">
+                                {% if price_request.deadline %}
+                                    {{ price_request.deadline.strftime('%d.%m.%Y') }}
+                                {% else %}
+                                    <span class="text-muted">Belirtilmedi</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if price_request.admin_notes %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Admin Notları</label>
+                        <div class="alert alert-info">{{ price_request.admin_notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Atanan Tedarikçi Bilgisi -->
+            {% if price_request.assigned_supplier %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-building me-2"></i>Atanan Tedarikçi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ price_request.assigned_supplier.company }}</h6>
+                            <p class="text-muted mb-1">{{ price_request.assigned_supplier.contact_person }}</p>
+                            <p class="text-muted mb-1">{{ price_request.assigned_supplier.email }}</p>
+                            <p class="text-muted">{{ price_request.assigned_supplier.phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Atanma Tarihi:</small>
+                            <p>{{ price_request.assigned_at.strftime('%d.%m.%Y %H:%M') if price_request.assigned_at else '' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sağ Taraf - Müşteri ve Süreç Bilgileri -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-circle me-2"></i>Müşteri Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ price_request.customer.company }}</h6>
+                    <p class="text-muted mb-1">{{ price_request.customer.contact_person }}</p>
+                    <p class="text-muted mb-1">{{ price_request.customer.email }}</p>
+                    <p class="text-muted mb-3">{{ price_request.customer.phone }}</p>
+                    
+                    {% if price_request.customer.address %}
+                    <small class="text-muted">Adres:</small>
+                    <p class="small">{{ price_request.customer.address }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Süreç Takibi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Talep Oluşturuldu</h6>
+                                <small class="text-muted">{{ price_request.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                        
+                        {% if price_request.approved_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Onaylandı</h6>
+                                <small class="text-muted">{{ price_request.approved_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if price_request.assigned_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Tedarikçiye Atandı</h6>
+                                <small class="text-muted">{{ price_request.assigned_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modaller -->
+{% if price_request.status == 'pending' %}
+<!-- Onay Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin_approve_price_request', id=price_request.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Fiyat Talebini Onayla</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="adminNotes" class="form-label">Admin Notları</label>
+                        <textarea class="form-control" id="adminNotes" name="admin_notes" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignedSupplier" class="form-label">Tedarikçi Ata (İsteğe Bağlı)</label>
+                        <select class="form-select" id="assignedSupplier" name="assigned_supplier_id">
+                            <option value="">Tedarikçi seçin...</option>
+                            {% for supplier in suppliers %}
+                            <option value="{{ supplier.id }}">{{ supplier.company }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Tedarikçi seçerseniz talep doğrudan o tedarikçiye atanır.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success">Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reddetme Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin_reject_price_request', id=price_request.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Fiyat Talebini Reddet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejectNotes" class="form-label">Reddetme Sebebi</label>
+                        <textarea class="form-control" id="rejectNotes" name="admin_notes" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-danger">Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if price_request.status == 'approved' %}
+<!-- Tedarikçi Atama Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin_approve_price_request', id=price_request.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tedarikçi Ata</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="assignSupplier" class="form-label">Tedarikçi Seçin</label>
+                        <select class="form-select" id="assignSupplier" name="assigned_supplier_id" required>
+                            <option value="">Tedarikçi seçin...</option>
+                            {% for supplier in suppliers %}
+                            <option value="{{ supplier.id }}">{{ supplier.company }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignNotes" class="form-label">Ek Notlar</label>
+                        <textarea class="form-control" id="assignNotes" name="admin_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Ata</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 20px;
+    width: 2px;
+    height: calc(100% + 5px);
+    background-color: #dee2e6;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px currentColor;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+</style>
+{% endblock %}

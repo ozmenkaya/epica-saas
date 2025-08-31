@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Müşteri Girişi{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="row w-100">
+        <div class="col-md-6 col-lg-4 mx-auto">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <i class="bi bi-person-circle display-4"></i>
+                    <h3 class="mt-2 mb-0">Müşteri Girişi</h3>
+                    <p class="mb-0 opacity-75">Tekliflerinizi takip edin</p>
+                </div>
+                <div class="card-body p-5">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-bold">
+                                <i class="bi bi-envelope me-2"></i>E-posta
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" 
+                                   placeholder="ornek@email.com" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-bold">
+                                <i class="bi bi-lock me-2"></i>Şifre
+                            </label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" 
+                                   placeholder="Şifrenizi girin" required>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Henüz hesabınız yok mu?</p>
+                        <a href="{{ url_for('customer_register') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-person-plus me-2"></i>Hesap Oluştur
+                        </a>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <a href="{{ url_for('supplier_login') }}" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="bi bi-truck me-1"></i>Tedarikçi Girişi
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-dark btn-sm w-100">
+                                    <i class="bi bi-gear me-1"></i>Yönetici Girişi
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bilgi kutusu -->
+            <div class="card mt-4 border-0 bg-transparent">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-3">
+                        <i class="bi bi-info-circle me-2"></i>Müşteri Portalında Neler Yapabilirsiniz?
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="text-primary">
+                                <i class="bi bi-file-text display-6"></i>
+                                <p class="small mt-2 mb-0">Tekliflerinizi<br>görüntüleyin</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-success">
+                                <i class="bi bi-check-circle display-6"></i>
+                                <p class="small mt-2 mb-0">Onay/Red<br>işlemleri</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-info">
+                                <i class="bi bi-download display-6"></i>
+                                <p class="small mt-2 mb-0">PDF<br>indirin</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

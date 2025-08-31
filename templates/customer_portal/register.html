@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Müşteri Kayıt{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="row w-100">
+        <div class="col-md-8 col-lg-6 mx-auto">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <i class="bi bi-person-plus-fill display-4"></i>
+                    <h3 class="mt-2 mb-0">Müşteri Kayıt</h3>
+                    <p class="mb-0 opacity-75">Hesap oluşturun ve tekliflerinizi takip edin</p>
+                </div>
+                <div class="card-body p-4">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label fw-bold">
+                                    <i class="bi bi-person me-2"></i>Ad Soyad *
+                                </label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       placeholder="Adınız Soyadınız" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="company" class="form-label fw-bold">
+                                    <i class="bi bi-building me-2"></i>Firma Adı
+                                </label>
+                                <input type="text" class="form-control" id="company" name="company" 
+                                       placeholder="Şirket adınız">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label fw-bold">
+                                    <i class="bi bi-envelope me-2"></i>E-posta *
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="ornek@email.com" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label fw-bold">
+                                    <i class="bi bi-telephone me-2"></i>Telefon
+                                </label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       placeholder="+90 555 123 45 67">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="address" class="form-label fw-bold">
+                                <i class="bi bi-geo-alt me-2"></i>Adres
+                            </label>
+                            <textarea class="form-control" id="address" name="address" rows="3" 
+                                      placeholder="Tam adresiniz"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tax_number" class="form-label fw-bold">
+                                    <i class="bi bi-receipt me-2"></i>Vergi Numarası
+                                </label>
+                                <input type="text" class="form-control" id="tax_number" name="tax_number" 
+                                       placeholder="1234567890">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label fw-bold">
+                                    <i class="bi bi-lock me-2"></i>Şifre *
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Güvenli bir şifre oluşturun" required minlength="6">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label small" for="terms">
+                                    <strong>Kullanım şartlarını</strong> ve <strong>gizlilik politikasını</strong> okudum ve kabul ediyorum.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-person-check me-2"></i>Hesap Oluştur
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Zaten hesabınız var mı?</p>
+                        <a href="{{ url_for('customer_login') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

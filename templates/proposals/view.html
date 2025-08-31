@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}{{ proposal.title }} - Teklif Görüntüle{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-eye me-2"></i>Teklif Görüntüle
+                </h1>
+                <div>
+                    <a href="{{ url_for('edit_proposal', id=proposal.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Düzenle
+                    </a>
+                    <a href="{{ url_for('proposal_pdf', id=proposal.id) }}" class="btn btn-success" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>PDF İndir
+                    </a>
+                    <a href="{{ url_for('proposals') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teklif Bilgileri -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-file-earmark-text me-2"></i>{{ proposal.title }}
+                        </h5>
+                        {% if proposal.status == 'draft' %}
+                            <span class="badge bg-secondary fs-6">Taslak</span>
+                        {% elif proposal.status == 'sent' %}
+                            <span class="badge bg-primary fs-6">Gönderildi</span>
+                        {% elif proposal.status == 'approved' %}
+                            <span class="badge bg-success fs-6">Onaylandı</span>
+                        {% elif proposal.status == 'rejected' %}
+                            <span class="badge bg-danger fs-6">Reddedildi</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if proposal.description %}
+                        <p class="card-text">{{ proposal.description }}</p>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Oluşturulma Tarihi:</small>
+                            <br><strong>{{ proposal.created_at.strftime('%d.%m.%Y %H:%M') }}</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Son Güncelleme:</small>
+                            <br><strong>{{ proposal.updated_at.strftime('%d.%m.%Y %H:%M') }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Müşteri Bilgileri -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person me-2"></i>Müşteri Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold">{{ proposal.client_name }}</h6>
+                    {% if proposal.client_email %}
+                        <p class="mb-1">
+                            <i class="bi bi-envelope me-2"></i>
+                            <a href="mailto:{{ proposal.client_email }}">{{ proposal.client_email }}</a>
+                        </p>
+                    {% endif %}
+                    {% if proposal.client_phone %}
+                        <p class="mb-1">
+                            <i class="bi bi-telephone me-2"></i>
+                            <a href="tel:{{ proposal.client_phone }}">{{ proposal.client_phone }}</a>
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teklif Kalemleri -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Teklif Kalemleri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if proposal.items %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Kalem Adı</th>
+                                        <th>Açıklama</th>
+                                        <th class="text-center">Miktar</th>
+                                        <th class="text-end">Birim Fiyat</th>
+                                        <th class="text-center">KDV%</th>
+                                        <th class="text-end">Ara Toplam</th>
+                                        <th class="text-end">KDV</th>
+                                        <th class="text-end">Toplam</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set subtotal = 0 %}
+                                    {% set total_tax = 0 %}
+                                    {% for item in proposal.items %}
+                                    {% set subtotal = subtotal + item.subtotal %}
+                                    {% set total_tax = total_tax + item.tax_amount %}
+                                    <tr>
+                                        <td class="fw-medium">{{ item.name }}</td>
+                                        <td>{{ item.description or '-' }}</td>
+                                        <td class="text-center">{{ item.quantity }}</td>
+                                        <td class="text-end">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(item.unit_price) }}</td>
+                                        <td class="text-center">%{{ item.tax_rate }}</td>
+                                        <td class="text-end">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(item.subtotal) }}</td>
+                                        <td class="text-end text-info">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(item.tax_amount) }}</td>
+                                        <td class="text-end fw-bold">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(item.total_price) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="5" class="text-end">Ara Toplam:</th>
+                                        <th class="text-end">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(subtotal) }}</th>
+                                        <th class="text-end text-info">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(total_tax) }}</th>
+                                        <th class="text-end text-primary fs-5">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(proposal.total_amount) }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-list-ul display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz kalem eklenmemiş</h5>
+                            <p class="text-muted">Bu teklife kalem eklemek için düzenleme sayfasına gidin.</p>
+                            <a href="{{ url_for('edit_proposal', id=proposal.id) }}" class="btn btn-primary">
+                                <i class="bi bi-pencil me-2"></i>Düzenle
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eylemler -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Eylemler</h6>
+                            <small class="text-muted">Bu teklif ile yapabileceğiniz işlemler</small>
+                        </div>
+                        <div class="btn-group">
+                            {% if proposal.status == 'draft' %}
+                                <button type="button" class="btn btn-success" onclick="changeStatus('sent')">
+                                    <i class="bi bi-send me-2"></i>Gönder
+                                </button>
+                            {% endif %}
+                            
+                            {% if proposal.status == 'sent' %}
+                                <button type="button" class="btn btn-success" onclick="changeStatus('approved')">
+                                    <i class="bi bi-check-circle me-2"></i>Onayla
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="changeStatus('rejected')">
+                                    <i class="bi bi-x-circle me-2"></i>Reddet
+                                </button>
+                            {% endif %}
+                            
+                            <button type="button" class="btn btn-info">
+                                <i class="bi bi-download me-2"></i>PDF İndir
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="deleteProposal({{ proposal.id }}, '{{ proposal.title }}')">
+                                <i class="bi bi-trash me-2"></i>Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Teklifi Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-proposal-name"></strong> adlı teklifi silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger small">Bu işlem geri alınamaz.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="delete-form" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function changeStatus(newStatus) {
+        if (confirm(`Teklif durumunu "${getStatusText(newStatus)}" olarak değiştirmek istediğinizden emin misiniz?`)) {
+            // Bu fonksiyonu API ile genişletebiliriz
+            alert('Bu özellik henüz geliştirilme aşamasında.');
+        }
+    }
+    
+    function getStatusText(status) {
+        const statusTexts = {
+            'draft': 'Taslak',
+            'sent': 'Gönderildi',
+            'approved': 'Onaylandı',
+            'rejected': 'Reddedildi'
+        };
+        return statusTexts[status] || status;
+    }
+    
+    function deleteProposal(proposalId, proposalName) {
+        document.getElementById('delete-proposal-name').textContent = proposalName;
+        document.getElementById('delete-form').action = `/proposal/${proposalId}/delete`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Fiyat Talepleri - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="bi bi-cart-check me-3"></i>Fiyat Talepleri
+                            </h2>
+                            <p class="mb-0 opacity-75">Müşteri fiyat taleplerini yönetin</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-light">
+                                <i class="bi bi-arrow-left me-2"></i>Dashboard'a Dön
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fiyat Talepleri Listesi -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Gelen Fiyat Talepleri ({{ price_requests|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if price_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Talep</th>
+                                        <th>Müşteri</th>
+                                        <th>Ürün/Hizmet</th>
+                                        <th>Durum</th>
+                                        <th>Tarih</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for price_request in price_requests %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-medium">{{ price_request.title }}</div>
+                                            {% if price_request.description %}
+                                            <small class="text-muted">{{ price_request.description[:50] }}{% if price_request.description|length > 50 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium">{{ price_request.customer.company or price_request.customer.name }}</div>
+                                            <small class="text-muted">{{ price_request.customer.email }}</small>
+                                        </td>
+                                        <td>
+                                            {% if price_request.items %}
+                                                <span class="badge bg-info">{{ price_request.items|length }} kalem</span>
+                                                <div class="mt-1">
+                                                    {% for item in price_request.items[:2] %}
+                                                        <small class="d-block text-muted">{{ item.name }} ({{ item.quantity }} {{ item.unit }})</small>
+                                                    {% endfor %}
+                                                    {% if price_request.items|length > 2 %}
+                                                        <small class="text-muted">ve {{ price_request.items|length - 2 }} kalem daha...</small>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">Ürün yok</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ price_request.status_badge_class }}">
+                                                {% if price_request.status == 'pending' %}Bekleyen
+                                                {% elif price_request.status == 'approved' %}Onaylanan
+                                                {% elif price_request.status == 'assigned' %}Atanan
+                                                {% elif price_request.status == 'completed' %}Tamamlanan
+                                                {% elif price_request.status == 'cancelled' %}İptal
+                                                {% else %}{{ price_request.status }}{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div>{{ price_request.created_at.strftime('%d.%m.%Y') }}</div>
+                                            <small class="text-muted">{{ price_request.created_at.strftime('%H:%M') }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('admin_view_price_request', id=price_request.id) }}" 
+                                                   class="btn btn-outline-primary" title="Detay Görüntüle">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                {% if price_request.status == 'pending' %}
+                                                <form method="POST" action="{{ url_for('admin_approve_price_request', id=price_request.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-success" title="Onayla">
+                                                        <i class="bi bi-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="{{ url_for('admin_reject_price_request', id=price_request.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Reddet" 
+                                                            onclick="return confirm('Bu talebi reddetmek istediğinizden emin misiniz?')">
+                                                        <i class="bi bi-x"></i>
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-cart-check display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz fiyat talebi bulunmuyor</h5>
+                            <p class="text-muted">Müşteriler fiyat talebi oluşturduğunda burada görünecektir.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

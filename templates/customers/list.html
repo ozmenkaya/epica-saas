@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Müşteriler - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-people me-2"></i>Müşteriler
+                </h1>
+                <a href="{{ url_for('new_customer') }}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-2"></i>Yeni Müşteri
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Arama ve Filtreleme -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="search" class="form-label">Arama</label>
+                            <input type="text" class="form-control" id="search" 
+                                   placeholder="Müşteri adı, şirket veya email...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sort_by" class="form-label">Sıralama</label>
+                            <select class="form-select" id="sort_by">
+                                <option value="name_asc">İsim (A-Z)</option>
+                                <option value="name_desc">İsim (Z-A)</option>
+                                <option value="newest">En Yeni</option>
+                                <option value="oldest">En Eski</option>
+                                <option value="company">Şirket Adı</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Müşteri Listesi -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if customers %}
+                        <div class="row" id="customers-container">
+                            {% for customer in customers %}
+                            <div class="col-lg-4 col-md-6 mb-4 customer-card" 
+                                 data-name="{{ customer.name.lower() }}"
+                                 data-company="{{ (customer.company or '').lower() }}"
+                                 data-email="{{ (customer.email or '').lower() }}"
+                                 data-created="{{ customer.created_at.timestamp() }}">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h5 class="card-title mb-1">
+                                                    <a href="{{ url_for('view_customer', id=customer.id) }}" 
+                                                       class="text-decoration-none">
+                                                        {{ customer.name }}
+                                                    </a>
+                                                </h5>
+                                                {% if customer.company %}
+                                                    <small class="text-muted">{{ customer.company }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                                        data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ url_for('view_customer', id=customer.id) }}">
+                                                            <i class="bi bi-eye me-2"></i>Görüntüle
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ url_for('edit_customer', id=customer.id) }}">
+                                                            <i class="bi bi-pencil me-2"></i>Düzenle
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" 
+                                                           onclick="deleteCustomer({{ customer.id }}, '{{ customer.name }}')">
+                                                            <i class="bi bi-trash me-2"></i>Sil
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            {% if customer.email %}
+                                                <div class="mb-1">
+                                                    <i class="bi bi-envelope text-muted me-2"></i>
+                                                    <small>{{ customer.email }}</small>
+                                                </div>
+                                            {% endif %}
+                                            {% if customer.phone %}
+                                                <div class="mb-1">
+                                                    <i class="bi bi-telephone text-muted me-2"></i>
+                                                    <small>{{ customer.phone }}</small>
+                                                </div>
+                                            {% endif %}
+                                            {% if customer.tax_number %}
+                                                <div class="mb-1">
+                                                    <i class="bi bi-receipt text-muted me-2"></i>
+                                                    <small>Vergi No: {{ customer.tax_number }}</small>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                {{ customer.created_at.strftime('%d.%m.%Y') }}
+                                            </small>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('view_customer', id=customer.id) }}" 
+                                                   class="btn btn-outline-primary" title="Görüntüle">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('edit_customer', id=customer.id) }}" 
+                                                   class="btn btn-outline-secondary" title="Düzenle">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-people display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz müşteri bulunmuyor</h5>
+                            <p class="text-muted">İlk müşterinizi eklemek için aşağıdaki butona tıklayın.</p>
+                            <a href="{{ url_for('new_customer') }}" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-2"></i>İlk Müşteriyi Ekle
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Müşteriyi Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-customer-name"></strong> adlı müşteriyi silmek istediğinizden emin misiniz?</p>
+                <p class="text-warning small">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Bu müşteriyle ilişkili tekliflerin müşteri bağlantısı kaldırılacaktır.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="delete-form" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let originalCards = [];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Orijinal kartları sakla
+        const container = document.getElementById('customers-container');
+        if (container) {
+            originalCards = Array.from(container.querySelectorAll('.customer-card'));
+        }
+        
+        // Event listeners
+        document.getElementById('search').addEventListener('input', filterCustomers);
+        document.getElementById('sort_by').addEventListener('change', sortCustomers);
+    });
+    
+    function filterCustomers() {
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const cards = document.querySelectorAll('.customer-card');
+        
+        cards.forEach(card => {
+            const name = card.dataset.name || '';
+            const company = card.dataset.company || '';
+            const email = card.dataset.email || '';
+            
+            const matches = name.includes(searchTerm) || 
+                          company.includes(searchTerm) || 
+                          email.includes(searchTerm);
+            
+            if (matches) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    function sortCustomers() {
+        const sortBy = document.getElementById('sort_by').value;
+        const container = document.getElementById('customers-container');
+        
+        if (!container) return;
+        
+        const cards = Array.from(container.querySelectorAll('.customer-card'));
+        
+        cards.sort((a, b) => {
+            switch (sortBy) {
+                case 'name_asc':
+                    return a.dataset.name.localeCompare(b.dataset.name);
+                case 'name_desc':
+                    return b.dataset.name.localeCompare(a.dataset.name);
+                case 'newest':
+                    return parseFloat(b.dataset.created) - parseFloat(a.dataset.created);
+                case 'oldest':
+                    return parseFloat(a.dataset.created) - parseFloat(b.dataset.created);
+                case 'company':
+                    return a.dataset.company.localeCompare(b.dataset.company);
+                default:
+                    return 0;
+            }
+        });
+        
+        // Sıralanmış kartları container'a ekle
+        cards.forEach(card => container.appendChild(card));
+        
+        // Filtreleri yeniden uygula
+        filterCustomers();
+    }
+    
+    function clearFilters() {
+        document.getElementById('search').value = '';
+        document.getElementById('sort_by').value = 'name_asc';
+        
+        sortCustomers();
+        filterCustomers();
+    }
+    
+    function deleteCustomer(customerId, customerName) {
+        document.getElementById('delete-customer-name').textContent = customerName;
+        document.getElementById('delete-form').action = `/customer/${customerId}/delete`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

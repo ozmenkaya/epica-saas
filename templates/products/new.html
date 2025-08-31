@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Ürün - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Ürün
+                </h1>
+                <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-box me-2"></i>Ürün Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Temel Bilgiler -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-info-circle me-2"></i>Temel Bilgiler
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Ürün Adı *</label>
+                                <input type="text" class="form-control" id="name" name="name" required
+                                       placeholder="Örn: MacBook Pro M3">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sku" class="form-label">SKU (Stok Kodu)</label>
+                                <input type="text" class="form-control" id="sku" name="sku"
+                                       placeholder="Örn: MBP-M3-16-512">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="category_id" class="form-label">Kategori</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="category_id" name="category_id">
+                                        <option value="">Kategori Seçin</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="{{ url_for('new_category') }}" class="btn btn-outline-secondary" 
+                                       title="Yeni Kategori Ekle" target="_blank">
+                                        <i class="bi bi-plus"></i>
+                                    </a>
+                                </div>
+                                {% if not categories %}
+                                <small class="text-muted">
+                                    <a href="{{ url_for('new_category') }}" target="_blank">İlk kategorinizi oluşturun</a>
+                                </small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="brand" class="form-label">Marka</label>
+                                <input type="text" class="form-control" id="brand" name="brand"
+                                       placeholder="Örn: Apple, Microsoft">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="model" class="form-label">Model</label>
+                                <input type="text" class="form-control" id="model" name="model"
+                                       placeholder="Örn: Pro Max, Enterprise">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" 
+                                           id="is_service" name="is_service" onchange="toggleServiceFields()">
+                                    <label class="form-check-label" for="is_service">
+                                        Bu bir hizmettir (Fiziksel ürün değil)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="supplier_id" class="form-label">Tedarikçi</label>
+                                <select class="form-select" id="supplier_id" name="supplier_id">
+                                    <option value="">Tedarikçi Seçin</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}">{{ supplier.company }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Ürün açıklaması..."></textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <!-- Fiyat Bilgileri -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-currency-exchange me-2"></i>Fiyat Bilgileri
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="purchase_price" class="form-label">Alış Fiyatı (₺)</label>
+                                <input type="number" class="form-control" id="purchase_price" name="purchase_price"
+                                       min="0" step="0.01" placeholder="0.00" onchange="calculateProfit()">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="sale_price" class="form-label">Satış Fiyatı (₺) *</label>
+                                <input type="number" class="form-control" id="sale_price" name="sale_price"
+                                       min="0" step="0.01" required placeholder="0.00" onchange="calculateProfit()">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="tax_rate" class="form-label">KDV Oranı (%)</label>
+                                <select class="form-select" id="tax_rate" name="tax_rate">
+                                    <option value="0">%0 (KDV Muaf)</option>
+                                    <option value="1">%1</option>
+                                    <option value="8">%8</option>
+                                    <option value="18">%18</option>
+                                    <option value="20" selected>%20</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Kar Marjı</label>
+                                <div class="form-control-plaintext fw-bold text-success" id="profit-margin">%0</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" id="stock-separator">
+                        
+                        <!-- Stok Bilgileri -->
+                        <div id="stock-section">
+                            <h6 class="mb-3 text-primary">
+                                <i class="bi bi-boxes me-2"></i>Stok Bilgileri
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="unit" class="form-label">Birim</label>
+                                    <select class="form-select" id="unit" name="unit">
+                                        <option value="Adet" selected>Adet</option>
+                                        <option value="Kg">Kilogram</option>
+                                        <option value="Litre">Litre</option>
+                                        <option value="Metre">Metre</option>
+                                        <option value="Paket">Paket</option>
+                                        <option value="Kutu">Kutu</option>
+                                        <option value="Saatlik">Saatlik</option>
+                                        <option value="Günlük">Günlük</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="stock_quantity" class="form-label">Başlangıç Stok Miktarı</label>
+                                    <input type="number" class="form-control" id="stock_quantity" name="stock_quantity"
+                                           min="0" value="0">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="min_stock_level" class="form-label">Minimum Stok Seviyesi</label>
+                                    <input type="number" class="form-control" id="min_stock_level" name="min_stock_level"
+                                           min="0" value="0">
+                                    <small class="text-muted">Uyarı için minimum seviye</small>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="barcode" class="form-label">Barkod</label>
+                                    <input type="text" class="form-control" id="barcode" name="barcode"
+                                           placeholder="Ürün barkodu">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <!-- Teknik Özellikler -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-gear me-2"></i>Ek Bilgiler
+                        </h6>
+
+                        <div class="mb-3">
+                            <label for="specifications" class="form-label">Teknik Özellikler</label>
+                            <textarea class="form-control" id="specifications" name="specifications" rows="4"
+                                      placeholder="Teknik özellikler, boyutlar, önemli notlar..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notlar</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                      placeholder="Ürün hakkında özel notlar..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('products') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Ürünü Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleServiceFields() {
+        const isService = document.getElementById('is_service').checked;
+        const stockSection = document.getElementById('stock-section');
+        const stockSeparator = document.getElementById('stock-separator');
+        
+        if (isService) {
+            stockSection.style.display = 'none';
+            stockSeparator.style.display = 'none';
+            // Hizmet için birim değiştir
+            document.getElementById('unit').value = 'Saatlik';
+        } else {
+            stockSection.style.display = 'block';
+            stockSeparator.style.display = 'block';
+            // Ürün için birim değiştir
+            document.getElementById('unit').value = 'Adet';
+        }
+    }
+
+    function calculateProfit() {
+        const purchasePrice = parseFloat(document.getElementById('purchase_price').value) || 0;
+        const salePrice = parseFloat(document.getElementById('sale_price').value) || 0;
+        
+        let margin = 0;
+        if (purchasePrice > 0 && salePrice > purchasePrice) {
+            margin = ((salePrice - purchasePrice) / purchasePrice) * 100;
+        }
+        
+        const marginElement = document.getElementById('profit-margin');
+        marginElement.textContent = `%${margin.toFixed(1)}`;
+        
+        if (margin > 50) {
+            marginElement.className = 'form-control-plaintext fw-bold text-success';
+        } else if (margin > 20) {
+            marginElement.className = 'form-control-plaintext fw-bold text-warning';
+        } else {
+            marginElement.className = 'form-control-plaintext fw-bold text-danger';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const salePrice = document.getElementById('sale_price').value;
+            
+            if (!name) {
+                e.preventDefault();
+                alert('Ürün adı zorunludur!');
+                document.getElementById('name').focus();
+                return false;
+            }
+            
+            if (!salePrice || parseFloat(salePrice) <= 0) {
+                e.preventDefault();
+                alert('Geçerli bir satış fiyatı giriniz!');
+                document.getElementById('sale_price').focus();
+                return false;
+            }
+        });
+
+        // SKU auto-generation
+        const nameInput = document.getElementById('name');
+        const skuInput = document.getElementById('sku');
+        
+        nameInput.addEventListener('blur', function() {
+            if (!skuInput.value && this.value) {
+                // Basit SKU oluştur: İlk harfler + rastgele sayı
+                const words = this.value.trim().split(' ');
+                let sku = '';
+                words.forEach(word => {
+                    if (word.length > 0) {
+                        sku += word.charAt(0).toUpperCase();
+                    }
+                });
+                sku += '-' + Math.floor(Math.random() * 1000);
+                skuInput.value = sku;
+            }
+        });
+    });
+</script>
+{% endblock %}

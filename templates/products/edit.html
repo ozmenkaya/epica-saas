@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Düzenle{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-pencil-square me-2"></i>Ürün Düzenle
+                    </h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Ana Sayfa</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('products') }}">Ürünler</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('view_product', id=product.id) }}">{{ product.name }}</a></li>
+                            <li class="breadcrumb-item active">Düzenle</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="btn-toolbar gap-2">
+                    <a href="{{ url_for('view_product', id=product.id) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                    </a>
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete()">
+                        <i class="bi bi-trash me-2"></i>Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-box me-2"></i>Ürün Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Temel Bilgiler -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-info-circle me-2"></i>Temel Bilgiler
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Ürün Adı *</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ product.name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sku" class="form-label">SKU (Stok Kodu)</label>
+                                <input type="text" class="form-control" id="sku" name="sku"
+                                       value="{{ product.sku or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="category_id" class="form-label">Kategori</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="category_id" name="category_id">
+                                        <option value="">Kategori Seçin</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}" {{ 'selected' if product.category_id == category.id }}>
+                                            {{ category.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="{{ url_for('new_category') }}" class="btn btn-outline-secondary" 
+                                       title="Yeni Kategori Ekle" target="_blank">
+                                        <i class="bi bi-plus"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="brand" class="form-label">Marka</label>
+                                <input type="text" class="form-control" id="brand" name="brand"
+                                       value="{{ product.brand or '' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="model" class="form-label">Model</label>
+                                <input type="text" class="form-control" id="model" name="model"
+                                       value="{{ product.model or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" 
+                                           id="is_service" name="is_service" onchange="toggleServiceFields()"
+                                           {{ 'checked' if product.is_service }}>
+                                    <label class="form-check-label" for="is_service">
+                                        Bu bir hizmettir (Fiziksel ürün değil)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="supplier_id" class="form-label">Tedarikçi</label>
+                                <select class="form-select" id="supplier_id" name="supplier_id">
+                                    <option value="">Tedarikçi Seçin</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" {{ 'selected' if product.supplier_id == supplier.id }}>
+                                        {{ supplier.company }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ product.description or '' }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <!-- Fiyat Bilgileri -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-currency-exchange me-2"></i>Fiyat Bilgileri
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="purchase_price" class="form-label">Alış Fiyatı (₺)</label>
+                                <input type="number" class="form-control" id="purchase_price" name="purchase_price"
+                                       min="0" step="0.01" value="{{ product.purchase_price or '' }}" 
+                                       onchange="calculateProfit()">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="sale_price" class="form-label">Satış Fiyatı (₺) *</label>
+                                <input type="number" class="form-control" id="sale_price" name="sale_price"
+                                       min="0" step="0.01" required value="{{ product.sale_price }}" 
+                                       onchange="calculateProfit()">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="tax_rate" class="form-label">KDV Oranı (%)</label>
+                                <select class="form-select" id="tax_rate" name="tax_rate">
+                                    <option value="0" {{ 'selected' if product.tax_rate == 0 }}>%0 (KDV Muaf)</option>
+                                    <option value="1" {{ 'selected' if product.tax_rate == 1 }}>%1</option>
+                                    <option value="8" {{ 'selected' if product.tax_rate == 8 }}>%8</option>
+                                    <option value="18" {{ 'selected' if product.tax_rate == 18 }}>%18</option>
+                                    <option value="20" {{ 'selected' if (product.tax_rate == 20 or product.tax_rate is none) }}>%20</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Kar Marjı</label>
+                                <div class="form-control-plaintext fw-bold text-success" id="profit-margin">%0</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" id="stock-separator">
+                        
+                        <!-- Stok Bilgileri -->
+                        <div id="stock-section" {{ 'style="display: none;"' if product.is_service }}>
+                            <h6 class="mb-3 text-primary">
+                                <i class="bi bi-boxes me-2"></i>Stok Bilgileri
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="unit" class="form-label">Birim</label>
+                                    <select class="form-select" id="unit" name="unit">
+                                        <option value="Adet" {{ 'selected' if product.unit == 'Adet' or product.unit is none }}>Adet</option>
+                                        <option value="Kg" {{ 'selected' if product.unit == 'Kg' }}>Kilogram</option>
+                                        <option value="Litre" {{ 'selected' if product.unit == 'Litre' }}>Litre</option>
+                                        <option value="Metre" {{ 'selected' if product.unit == 'Metre' }}>Metre</option>
+                                        <option value="Paket" {{ 'selected' if product.unit == 'Paket' }}>Paket</option>
+                                        <option value="Kutu" {{ 'selected' if product.unit == 'Kutu' }}>Kutu</option>
+                                        <option value="Saatlik" {{ 'selected' if product.unit == 'Saatlik' }}>Saatlik</option>
+                                        <option value="Günlük" {{ 'selected' if product.unit == 'Günlük' }}>Günlük</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="stock_quantity" class="form-label">Mevcut Stok Miktarı</label>
+                                    <input type="number" class="form-control" id="stock_quantity" name="stock_quantity"
+                                           min="0" value="{{ product.stock_quantity or 0 }}" readonly>
+                                    <small class="text-muted">Stok güncellemesi için detay sayfasını kullanın</small>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="min_stock_level" class="form-label">Minimum Stok Seviyesi</label>
+                                    <input type="number" class="form-control" id="min_stock_level" name="min_stock_level"
+                                           min="0" value="{{ product.min_stock_level or 0 }}">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="barcode" class="form-label">Barkod</label>
+                                    <input type="text" class="form-control" id="barcode" name="barcode"
+                                           value="{{ product.barcode or '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <!-- Teknik Özellikler -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="bi bi-gear me-2"></i>Ek Bilgiler
+                        </h6>
+
+                        <div class="mb-3">
+                            <label for="specifications" class="form-label">Teknik Özellikler</label>
+                            <textarea class="form-control" id="specifications" name="specifications" rows="4">{{ product.specifications or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notlar</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3">{{ product.notes or '' }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete()">
+                                <i class="bi bi-trash me-2"></i>Ürünü Sil
+                            </button>
+                            <div class="btn-group">
+                                <a href="{{ url_for('view_product', id=product.id) }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle me-2"></i>İptal
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-2"></i>Değişiklikleri Kaydet
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Silme Onay Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Ürünü Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Dikkat!</strong> Bu işlem geri alınamaz.
+                </div>
+                <p>
+                    <strong>{{ product.name }}</strong> ürününü silmek istediğinizden emin misiniz?
+                </p>
+                <p class="text-muted small">
+                    Bu ürün silindiğinde, ilişkili tüm veriler de kalıcı olarak silinecektir.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form method="POST" action="{{ url_for('delete_product', id=product.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleServiceFields() {
+        const isService = document.getElementById('is_service').checked;
+        const stockSection = document.getElementById('stock-section');
+        const stockSeparator = document.getElementById('stock-separator');
+        
+        if (isService) {
+            stockSection.style.display = 'none';
+            stockSeparator.style.display = 'none';
+            // Hizmet için birim değiştir
+            document.getElementById('unit').value = 'Saatlik';
+        } else {
+            stockSection.style.display = 'block';
+            stockSeparator.style.display = 'block';
+            // Ürün için birim değiştir
+            document.getElementById('unit').value = 'Adet';
+        }
+    }
+
+    function calculateProfit() {
+        const purchasePrice = parseFloat(document.getElementById('purchase_price').value) || 0;
+        const salePrice = parseFloat(document.getElementById('sale_price').value) || 0;
+        
+        let margin = 0;
+        if (purchasePrice > 0 && salePrice > purchasePrice) {
+            margin = ((salePrice - purchasePrice) / purchasePrice) * 100;
+        }
+        
+        const marginElement = document.getElementById('profit-margin');
+        marginElement.textContent = `%${margin.toFixed(1)}`;
+        
+        if (margin > 50) {
+            marginElement.className = 'form-control-plaintext fw-bold text-success';
+        } else if (margin > 20) {
+            marginElement.className = 'form-control-plaintext fw-bold text-warning';
+        } else {
+            marginElement.className = 'form-control-plaintext fw-bold text-danger';
+        }
+    }
+
+    function confirmDelete() {
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sayfa yüklendiğinde kar marjını hesapla
+        calculateProfit();
+
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const salePrice = document.getElementById('sale_price').value;
+            
+            if (!name) {
+                e.preventDefault();
+                alert('Ürün adı zorunludur!');
+                document.getElementById('name').focus();
+                return false;
+            }
+            
+            if (!salePrice || parseFloat(salePrice) <= 0) {
+                e.preventDefault();
+                alert('Geçerli bir satış fiyatı giriniz!');
+                document.getElementById('sale_price').focus();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

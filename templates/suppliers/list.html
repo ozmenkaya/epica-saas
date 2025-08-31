@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Tedarikçiler - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-truck me-2"></i>Tedarikçiler
+                </h1>
+                <a href="{{ url_for('new_supplier') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Tedarikçi
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Arama ve Filtreler -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control" id="search-input" placeholder="Tedarikçi ara...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="category-filter">
+                <option value="">Tüm Kategoriler</option>
+                <option value="Yazılım">Yazılım</option>
+                <option value="Donanım">Donanım</option>
+                <option value="Hizmet">Hizmet</option>
+                <option value="Pazarlama">Pazarlama</option>
+                <option value="Danışmanlık">Danışmanlık</option>
+                <option value="Diğer">Diğer</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="status-filter">
+                <option value="">Tüm Durumlar</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Pasif</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if suppliers %}
+            <div id="suppliers-grid" class="row">
+                {% for supplier in suppliers %}
+                <div class="col-lg-4 col-md-6 mb-4 supplier-card" 
+                     data-name="{{ supplier.company|lower }}" 
+                     data-category="{{ supplier.category|lower }}"
+                     data-status="{{ 'active' if supplier.is_active else 'inactive' }}">
+                    <div class="card h-100 {{ '' if supplier.is_active else 'opacity-75' }}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0">
+                                {{ supplier.company }}
+                                {% if not supplier.is_active %}
+                                <span class="badge bg-secondary ms-2">Pasif</span>
+                                {% endif %}
+                            </h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                        data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('view_supplier', id=supplier.id) }}">
+                                            <i class="bi bi-eye me-2"></i>Görüntüle
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('edit_supplier', id=supplier.id) }}">
+                                            <i class="bi bi-pencil me-2"></i>Düzenle
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ url_for('toggle_supplier_status', id=supplier.id) }}" class="d-inline">
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="bi bi-power me-2"></i>
+                                                {{ 'Pasifleştir' if supplier.is_active else 'Aktifleştir' }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger" 
+                                                onclick="deleteSupplier({{ supplier.id }}, '{{ supplier.company }}')">
+                                            <i class="bi bi-trash me-2"></i>Sil
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-person me-2 text-muted"></i>
+                                    <span class="fw-medium">{{ supplier.name }}</span>
+                                </div>
+                                {% if supplier.contact_person %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-person-badge me-2 text-muted"></i>
+                                    <span class="small">{{ supplier.contact_person }}</span>
+                                </div>
+                                {% endif %}
+                                {% if supplier.email %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-envelope me-2 text-muted"></i>
+                                    <a href="mailto:{{ supplier.email }}" class="small text-decoration-none">
+                                        {{ supplier.email }}
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% if supplier.phone %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-telephone me-2 text-muted"></i>
+                                    <a href="tel:{{ supplier.phone }}" class="small text-decoration-none">
+                                        {{ supplier.phone }}
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% if supplier.website %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-globe me-2 text-muted"></i>
+                                    <a href="{{ supplier.website }}" target="_blank" class="small text-decoration-none">
+                                        Website
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                {% if supplier.category %}
+                                <span class="badge bg-primary">{{ supplier.category }}</span>
+                                {% else %}
+                                <span></span>
+                                {% endif %}
+                                
+                                <div class="text-warning">
+                                    {% for i in range(5) %}
+                                        {% if i < supplier.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            {% if supplier.payment_terms %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-credit-card me-1"></i>{{ supplier.payment_terms }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">
+                                Eklenme: {{ supplier.created_at.strftime('%d.%m.%Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-truck display-1 text-muted mb-3"></i>
+                <h5 class="text-muted">Henüz tedarikçi eklenmemiş</h5>
+                <p class="text-muted">İlk tedarikçinizi eklemek için aşağıdaki butona tıklayın.</p>
+                <a href="{{ url_for('new_supplier') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>İlk Tedarikçiyi Ekle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tedarikçiyi Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-supplier-name"></strong> tedarikçisini silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger small">Bu işlem geri alınamaz.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="delete-form" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Arama ve filtreleme
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const supplierCards = document.querySelectorAll('.supplier-card');
+
+        function filterSuppliers() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value.toLowerCase();
+            const selectedStatus = statusFilter.value;
+
+            supplierCards.forEach(card => {
+                const name = card.dataset.name;
+                const category = card.dataset.category;
+                const status = card.dataset.status;
+
+                const matchesSearch = name.includes(searchTerm);
+                const matchesCategory = !selectedCategory || category === selectedCategory;
+                const matchesStatus = !selectedStatus || status === selectedStatus;
+
+                if (matchesSearch && matchesCategory && matchesStatus) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterSuppliers);
+        categoryFilter.addEventListener('change', filterSuppliers);
+        statusFilter.addEventListener('change', filterSuppliers);
+    });
+
+    function deleteSupplier(supplierId, supplierName) {
+        document.getElementById('delete-supplier-name').textContent = supplierName;
+        document.getElementById('delete-form').action = `/supplier/${supplierId}/delete`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+</script>
+{% endblock %}

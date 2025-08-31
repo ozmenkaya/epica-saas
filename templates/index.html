@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Ana Sayfa - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">
+                    <i class="bi bi-file-earmark-text me-3"></i>
+                    Teklif Arayüzü
+                </h1>
+                <p class="lead text-muted">
+                    Profesyonel tekliflerinizi kolayca oluşturun ve yönetin
+                </p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-file-earmark-plus display-4 text-primary mb-3"></i>
+                            <h5 class="card-title">Hızlı Teklif Oluşturma</h5>
+                            <p class="card-text">Sadece birkaç tıklamayla profesyonel teklifler oluşturun</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-graph-up display-4 text-success mb-3"></i>
+                            <h5 class="card-title">Detaylı Raporlama</h5>
+                            <p class="card-text">Tekliflerinizin performansını takip edin ve analiz edin</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="bi bi-people display-4 text-info mb-3"></i>
+                            <h5 class="card-title">Müşteri Yönetimi</h5>
+                            <p class="card-text">Müşteri bilgilerini organize edin ve takip edin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h3 class="mb-4">Sisteme Giriş</h3>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-gear display-4 text-primary mb-3"></i>
+                                <h5 class="card-title">Yönetici Girişi</h5>
+                                <p class="card-text small">Sistem yönetimi ve tüm işlemler</p>
+                                <a href="{{ url_for('login') }}" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-circle display-4 text-success mb-3"></i>
+                                <h5 class="card-title">Müşteri Portalı</h5>
+                                <p class="card-text small">Tekliflerinizi görüntüleyin ve onaylayın</p>
+                                <a href="{{ url_for('customer_login') }}" class="btn btn-success">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-truck display-4 text-warning mb-3"></i>
+                                <h5 class="card-title">Tedarikçi Portalı</h5>
+                                <p class="card-text small">Ürünlerinizi yönetin ve satış yapın</p>
+                                <a href="{{ url_for('supplier_login') }}" class="btn btn-warning text-dark">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <h4 class="mb-3">Henüz hesabınız yok mu?</h4>
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="bi bi-gear me-2"></i>Yönetici Kaydı
+                    </a>
+                                            <a href="{{ url_for('customer_register') }}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-person-plus me-1"></i>Müşteri Kaydı
+                        </a>
+                    <a href="{{ url_for('supplier_register') }}" class="btn btn-outline-warning btn-lg px-4">
+                        <i class="bi bi-building-add me-2"></i>Tedarikçi Kaydı
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="bg-light py-5 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h2 class="fw-bold">Özellikler</h2>
+                <p class="text-muted">Teklif sürecinizi kolaylaştıran güçlü özellikler</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="bi bi-shield-check display-5 text-primary mb-3"></i>
+                    <h5>Güvenli</h5>
+                    <p class="text-muted">Verileriniz güvenli şekilde korunur</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="bi bi-lightning display-5 text-warning mb-3"></i>
+                    <h5>Hızlı</h5>
+                    <p class="text-muted">Saniyeler içinde teklif oluşturun</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="bi bi-phone display-5 text-success mb-3"></i>
+                    <h5>Mobil Uyumlu</h5>
+                    <p class="text-muted">Her cihazdan erişim sağlayın</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="bi bi-cloud display-5 text-info mb-3"></i>
+                    <h5>Bulut Tabanlı</h5>
+                    <p class="text-muted">Verilerinize her yerden ulaşın</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

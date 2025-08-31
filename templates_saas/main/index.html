@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epica - Teklif Yönetim Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+        }
+        .feature-card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .pricing-card {
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .pricing-card:hover {
+            border-color: #667eea;
+            transform: translateY(-10px);
+        }
+        .pricing-card.featured {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        .bg-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('index') }}">
+                <i class="bi bi-graph-up me-2"></i>Epica
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Özellikler</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('pricing') }}">Fiyatlandırma</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">İletişim</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-primary me-2" href="{{ url_for('platform_login') }}">Platform Giriş</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary" href="{{ url_for('register') }}">Ücretsiz Dene</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">
+                        Teklif Sürecinizi Dijitalleştirin
+                    </h1>
+                    <p class="lead mb-4">
+                        Epica ile müşterilerinizden fiyat talepleri alın, tedarikçilerinizden en iyi teklifleri toplayın ve profesyonel teklifler hazırlayın. Tüm süreç tek platformda!
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                            <i class="bi bi-rocket me-2"></i>15 Gün Ücretsiz Deneyin
+                        </a>
+                        <a href="#demo" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>Demo İzle
+                        </a>
+                    </div>
+                    <div class="mt-4">
+                        <small class="opacity-75">
+                            <i class="bi bi-check-circle me-1"></i>Kredi kartı gerekmez
+                            <i class="bi bi-check-circle ms-3 me-1"></i>Anında kurulum
+                            <i class="bi bi-check-circle ms-3 me-1"></i>Türkçe destek
+                        </small>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <img src="/static/images/hero-dashboard.png" alt="Epica Dashboard" class="img-fluid rounded shadow-lg" style="max-width: 500px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Neden Epica?</h2>
+                <p class="lead text-muted">Modern işletmelerin ihtiyaçları için tasarlanmış güçlü özellikler</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-people fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Multi-Portal Sistem</h5>
+                            <p class="card-text">Müşteriler ve tedarikçiler kendi portallarından işlemlerini gerçekleştirir. Herkes sadece kendi verilerine erişir.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-shield-check fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Güvenli SaaS Altyapı</h5>
+                            <p class="card-text">Her firma için izole veri, subdomain yapısı, SSL sertifikası ve düzenli yedekleme ile güvenlik önceliğimiz.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-graph-up fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Analitik Dashboard</h5>
+                            <p class="card-text">Teklif performansınızı, müşteri davranışlarını ve tedarikçi karşılaştırmalarını detaylı raporlarla takip edin.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-file-earmark-pdf fs-4"></i>
+                            </div>
+                            <h5 class="card-title">Profesyonel PDF</h5>
+                            <p class="card-text">Markanıza özel tasarlanmış, profesyonel PDF teklifler oluşturun. Logo, renkler ve düzeni özelleştirin.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="bg-purple text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-arrows-move fs-4"></i>
+                            </div>
+                            <h5 class="card-title">API Entegrasyonu</h5>
+                            <p class="card-text">Mevcut ERP, CRM sistemlerinizle entegrasyon. RESTful API ile veri alışverişi ve otomatik senkronizasyon.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-headset fs-4"></i>
+                            </div>
+                            <h5 class="card-title">7/24 Türkçe Destek</h5>
+                            <p class="card-text">Uzman ekibimiz her zaman yanınızda. Canlı chat, telefon ve email ile hızlı çözüm desteği.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <h3 class="display-4 fw-bold text-primary">500+</h3>
+                        <p class="text-muted">Aktif Firma</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <h3 class="display-4 fw-bold text-primary">50K+</h3>
+                        <p class="text-muted">Aylık Teklif</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <h3 class="display-4 fw-bold text-primary">₺2M+</h3>
+                        <p class="text-muted">Aylık İşlem Hacmi</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <h3 class="display-4 fw-bold text-primary">99.9%</h3>
+                        <p class="text-muted">Uptime Garantisi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-gradient text-white py-5">
+        <div class="container text-center">
+            <h2 class="display-5 fw-bold mb-3">Hemen Başlayın!</h2>
+            <p class="lead mb-4">
+                15 gün ücretsiz deneme ile Epica'nın gücünü keşfedin. 
+                Kredi kartı gerekmez, anında kurulum.
+            </p>
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                <i class="bi bi-rocket me-2"></i>Ücretsiz Hesap Oluştur
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up me-2"></i>Epica
+                    </h5>
+                    <p class="text-muted">
+                        Türkiye'nin en gelişmiş teklif yönetim sistemi. 
+                        İşinizi dijitalleştirin, verimliliğinizi artırın.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-white"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <h6 class="fw-bold mb-3">Ürün</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Özellikler</a></li>
+                        <li><a href="{{ url_for('pricing') }}" class="text-muted text-decoration-none">Fiyatlandırma</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">API</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Entegrasyonlar</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h6 class="fw-bold mb-3">Kaynak</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Dokümantasyon</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Blog</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Webinar</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Yardım Merkezi</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h6 class="fw-bold mb-3">Şirket</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Hakkımızda</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Kariyer</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Basın</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">İletişim</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h6 class="fw-bold mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Gizlilik</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Şartlar</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">KVKK</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Çerezler</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">© 2025 Epica. Tüm hakları saklıdır.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-shield-check me-1"></i>SSL Güvenli
+                        <i class="bi bi-geo-alt ms-3 me-1"></i>Türkiye'de Barındırılıyor
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

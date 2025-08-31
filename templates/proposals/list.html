@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Teklifler - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-file-earmark-text me-2"></i>Tekliflerim
+                </h1>
+                <a href="{{ url_for('new_proposal') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Teklif
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtre ve Arama -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Arama</label>
+                            <input type="text" class="form-control" id="search" 
+                                   placeholder="Teklif başlığı veya müşteri adı...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status_filter" class="form-label">Durum</label>
+                            <select class="form-select" id="status_filter">
+                                <option value="">Tümü</option>
+                                <option value="draft">Taslak</option>
+                                <option value="sent">Gönderildi</option>
+                                <option value="approved">Onaylandı</option>
+                                <option value="rejected">Reddedildi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sort_by" class="form-label">Sıralama</label>
+                            <select class="form-select" id="sort_by">
+                                <option value="newest">En Yeni</option>
+                                <option value="oldest">En Eski</option>
+                                <option value="amount_high">Tutar (Yüksek-Düşük)</option>
+                                <option value="amount_low">Tutar (Düşük-Yüksek)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teklifler Listesi -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if proposals %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Teklif Başlığı</th>
+                                        <th>Müşteri</th>
+                                        <th>Tutar</th>
+                                        <th>Durum</th>
+                                        <th>Oluşturulma</th>
+                                        <th>Güncellenme</th>
+                                        <th width="150">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="proposals-table">
+                                    {% for proposal in proposals %}
+                                    <tr data-status="{{ proposal.status }}" 
+                                        data-title="{{ proposal.title.lower() }}"
+                                        data-client="{{ proposal.client_name.lower() }}"
+                                        data-amount="{{ proposal.total_amount }}"
+                                        data-created="{{ proposal.created_at.timestamp() }}">
+                                        <td>
+                                            <a href="{{ url_for('view_proposal', id=proposal.id) }}" 
+                                               class="text-decoration-none fw-medium">
+                                                {{ proposal.title }}
+                                            </a>
+                                            {% if proposal.description %}
+                                                <br><small class="text-muted">{{ proposal.description[:50] }}{% if proposal.description|length > 50 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>{{ proposal.client_name }}</div>
+                                            {% if proposal.client_email %}
+                                                <small class="text-muted">{{ proposal.client_email }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(proposal.total_amount) }}</span>
+                                        </td>
+                                        <td>
+                                            {% if proposal.status == 'draft' %}
+                                                <span class="badge bg-secondary status-badge">Taslak</span>
+                                            {% elif proposal.status == 'sent' %}
+                                                <span class="badge bg-primary status-badge">Gönderildi</span>
+                                            {% elif proposal.status == 'approved' %}
+                                                <span class="badge bg-success status-badge">Onaylandı</span>
+                                            {% elif proposal.status == 'rejected' %}
+                                                <span class="badge bg-danger status-badge">Reddedildi</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>{{ proposal.created_at.strftime('%d.%m.%Y') }}</div>
+                                            <small class="text-muted">{{ proposal.created_at.strftime('%H:%M') }}</small>
+                                        </td>
+                                        <td>
+                                            <div>{{ proposal.updated_at.strftime('%d.%m.%Y') }}</div>
+                                            <small class="text-muted">{{ proposal.updated_at.strftime('%H:%M') }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('view_proposal', id=proposal.id) }}" 
+                                                   class="btn btn-outline-primary" title="Görüntüle">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('edit_proposal', id=proposal.id) }}" 
+                                                   class="btn btn-outline-secondary" title="Düzenle">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{{ url_for('proposal_pdf', id=proposal.id) }}" 
+                                                   class="btn btn-outline-success" title="PDF İndir" target="_blank">
+                                                    <i class="bi bi-file-earmark-pdf"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        title="Sil" onclick="deleteProposal({{ proposal.id }}, '{{ proposal.title }}')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-file-earmark-x display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz teklif bulunmuyor</h5>
+                            <p class="text-muted">İlk teklifinizi oluşturmak için aşağıdaki butona tıklayın.</p>
+                            <a href="{{ url_for('new_proposal') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>İlk Teklifimi Oluştur
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Teklifi Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="delete-proposal-name"></strong> adlı teklifi silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger small">Bu işlem geri alınamaz.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="delete-form" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let originalRows = [];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Orijinal satırları sakla
+        const table = document.getElementById('proposals-table');
+        if (table) {
+            originalRows = Array.from(table.querySelectorAll('tr'));
+        }
+        
+        // Arama filtresi
+        document.getElementById('search').addEventListener('input', filterTable);
+        document.getElementById('status_filter').addEventListener('change', filterTable);
+        document.getElementById('sort_by').addEventListener('change', sortTable);
+    });
+    
+    function filterTable() {
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const statusFilter = document.getElementById('status_filter').value;
+        const table = document.getElementById('proposals-table');
+        
+        if (!table) return;
+        
+        const rows = table.querySelectorAll('tr');
+        
+        rows.forEach(row => {
+            const title = row.dataset.title || '';
+            const client = row.dataset.client || '';
+            const status = row.dataset.status || '';
+            
+            const matchesSearch = title.includes(searchTerm) || client.includes(searchTerm);
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            if (matchesSearch && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    function sortTable() {
+        const sortBy = document.getElementById('sort_by').value;
+        const table = document.getElementById('proposals-table');
+        
+        if (!table) return;
+        
+        const rows = Array.from(table.querySelectorAll('tr'));
+        
+        rows.sort((a, b) => {
+            switch (sortBy) {
+                case 'newest':
+                    return parseFloat(b.dataset.created) - parseFloat(a.dataset.created);
+                case 'oldest':
+                    return parseFloat(a.dataset.created) - parseFloat(b.dataset.created);
+                case 'amount_high':
+                    return parseFloat(b.dataset.amount) - parseFloat(a.dataset.amount);
+                case 'amount_low':
+                    return parseFloat(a.dataset.amount) - parseFloat(b.dataset.amount);
+                default:
+                    return 0;
+            }
+        });
+        
+        // Sıralanmış satırları tabloya ekle
+        rows.forEach(row => table.appendChild(row));
+        
+        // Filtreleri yeniden uygula
+        filterTable();
+    }
+    
+    function clearFilters() {
+        document.getElementById('search').value = '';
+        document.getElementById('status_filter').value = '';
+        document.getElementById('sort_by').value = 'newest';
+        
+        sortTable();
+        filterTable();
+    }
+    
+    function deleteProposal(proposalId, proposalName) {
+        document.getElementById('delete-proposal-name').textContent = proposalName;
+        document.getElementById('delete-form').action = `/proposal/${proposalId}/delete`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}

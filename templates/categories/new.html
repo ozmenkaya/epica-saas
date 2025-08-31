@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Kategori - Teklif Arayüzü{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Kategori
+                </h1>
+                <a href="{{ url_for('categories') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-tag me-2"></i>Kategori Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Kategori Adı *</label>
+                                <input type="text" class="form-control" id="name" name="name" required
+                                       placeholder="Örn: Teknoloji, Yazılım, Hizmet">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sort_order" class="form-label">Sıra Numarası</label>
+                                <input type="number" class="form-control" id="sort_order" name="sort_order"
+                                       min="0" value="0" placeholder="0">
+                                <small class="text-muted">Düşük sayı önce görünür</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Kategori açıklaması..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="color" class="form-label">Renk</label>
+                                <div class="input-group">
+                                    <input type="color" class="form-control form-control-color" id="color" name="color"
+                                           value="#6c757d" title="Kategori rengi">
+                                    <input type="text" class="form-control" id="color-text" value="#6c757d"
+                                           placeholder="#6c757d" readonly>
+                                </div>
+                                <small class="text-muted">Kategori görüntülemede kullanılacak renk</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="icon" class="form-label">İkon</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i id="icon-preview" class="bi-tag"></i>
+                                    </span>
+                                    <select class="form-select" id="icon" name="icon">
+                                        <option value="bi-tag" selected>Tag (Etiket)</option>
+                                        <option value="bi-laptop">Laptop</option>
+                                        <option value="bi-phone">Telefon</option>
+                                        <option value="bi-gear">Gear (Ayar)</option>
+                                        <option value="bi-tools">Tools (Araçlar)</option>
+                                        <option value="bi-shield">Shield (Kalkan)</option>
+                                        <option value="bi-book">Book (Kitap)</option>
+                                        <option value="bi-house">House (Ev)</option>
+                                        <option value="bi-car">Car (Araba)</option>
+                                        <option value="bi-heart">Heart (Kalp)</option>
+                                        <option value="bi-star">Star (Yıldız)</option>
+                                        <option value="bi-circle">Circle (Daire)</option>
+                                        <option value="bi-square">Square (Kare)</option>
+                                        <option value="bi-triangle">Triangle (Üçgen)</option>
+                                        <option value="bi-briefcase">Briefcase (Çanta)</option>
+                                        <option value="bi-building">Building (Bina)</option>
+                                        <option value="bi-cpu">CPU</option>
+                                        <option value="bi-memory">Memory (Hafıza)</option>
+                                        <option value="bi-hdd">HDD</option>
+                                        <option value="bi-server">Server</option>
+                                    </select>
+                                </div>
+                                <small class="text-muted">Kategori için Bootstrap ikonu</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Önizleme</h6>
+                                <div class="border rounded p-3 bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <div id="preview-color" 
+                                             style="width: 20px; height: 20px; border-radius: 4px; background-color: #6c757d; margin-right: 10px;"></div>
+                                        <i id="preview-icon" class="bi-tag me-2"></i>
+                                        <span id="preview-name" class="fw-medium">Kategori Adı</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('categories') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Kategoriyi Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('name');
+        const colorInput = document.getElementById('color');
+        const colorTextInput = document.getElementById('color-text');
+        const iconSelect = document.getElementById('icon');
+        const iconPreview = document.getElementById('icon-preview');
+        
+        // Önizleme elementleri
+        const previewName = document.getElementById('preview-name');
+        const previewColor = document.getElementById('preview-color');
+        const previewIcon = document.getElementById('preview-icon');
+
+        function updatePreview() {
+            const name = nameInput.value || 'Kategori Adı';
+            const color = colorInput.value;
+            const icon = iconSelect.value;
+
+            previewName.textContent = name;
+            previewColor.style.backgroundColor = color;
+            previewIcon.className = icon + ' me-2';
+            iconPreview.className = icon;
+            colorTextInput.value = color;
+        }
+
+        // Event listeners
+        nameInput.addEventListener('input', updatePreview);
+        colorInput.addEventListener('input', updatePreview);
+        iconSelect.addEventListener('change', updatePreview);
+
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                e.preventDefault();
+                alert('Kategori adı zorunludur!');
+                nameInput.focus();
+                return false;
+            }
+        });
+
+        // İlk yükleme
+        updatePreview();
+    });
+</script>
+{% endblock %}

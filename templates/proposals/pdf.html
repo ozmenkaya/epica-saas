@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teklif - {{ proposal.title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-right {
+                content: "Sayfa " counter(page) " / " counter(pages);
+                font-size: 10px;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .company-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        
+        .proposal-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 5px solid #007bff;
+        }
+        
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            width: 48%;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: #007bff;
+            font-size: 16px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .items-table th {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .items-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 11px;
+        }
+        
+        .items-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .items-table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .font-bold {
+            font-weight: bold;
+        }
+        
+        .total-section {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .total-label {
+            width: 150px;
+            text-align: right;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+        
+        .total-value {
+            width: 120px;
+            text-align: right;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+        
+        .grand-total {
+            font-size: 18px;
+            color: #007bff;
+            font-weight: bold;
+            border-top: 2px solid #007bff;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-draft { background-color: #6c757d; color: white; }
+        .status-sent { background-color: #007bff; color: white; }
+        .status-approved { background-color: #28a745; color: white; }
+        .status-rejected { background-color: #dc3545; color: white; }
+        
+        .description {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 3px;
+        }
+        
+        .description h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-info">
+            <div class="company-name">Şirket Adı</div>
+            <p>Adres Bilgisi | Telefon: +90 XXX XXX XX XX | Email: info@sirket.com</p>
+        </div>
+    </div>
+
+    <div class="proposal-title">
+        {{ proposal.title }}
+        <span class="status-badge status-{{ proposal.status }}">
+            {% if proposal.status == 'draft' %}Taslak
+            {% elif proposal.status == 'sent' %}Gönderildi
+            {% elif proposal.status == 'approved' %}Onaylandı
+            {% elif proposal.status == 'rejected' %}Reddedildi
+            {% endif %}
+        </span>
+    </div>
+
+    <div class="info-section">
+        <div class="info-box">
+            <h3>Teklif Bilgileri</h3>
+            <p><strong>Teklif No:</strong> #{{ proposal.id }}</p>
+            <p><strong>Tarih:</strong> {{ proposal.created_at.strftime('%d.%m.%Y') }}</p>
+            <p><strong>Para Birimi:</strong> {{ proposal.get_currency_symbol() }} 
+                {% if proposal.currency == 'TL' %}Türk Lirası
+                {% elif proposal.currency == 'EUR' %}Euro
+                {% elif proposal.currency == 'USD' %}Dolar
+                {% elif proposal.currency == 'GBP' %}Pound
+                {% endif %}
+            </p>
+            <p><strong>Durum:</strong> 
+                {% if proposal.status == 'draft' %}Taslak
+                {% elif proposal.status == 'sent' %}Gönderildi
+                {% elif proposal.status == 'approved' %}Onaylandı
+                {% elif proposal.status == 'rejected' %}Reddedildi
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="info-box">
+            <h3>Müşteri Bilgileri</h3>
+            {% if proposal.customer_info %}
+                <p><strong>Firma:</strong> {{ proposal.customer_info.name }}</p>
+                <p><strong>İletişim:</strong> {{ proposal.customer_info.email or '-' }}</p>
+                <p><strong>Telefon:</strong> {{ proposal.customer_info.phone or '-' }}</p>
+                <p><strong>Adres:</strong> {{ proposal.customer_info.address or '-' }}</p>
+            {% else %}
+                <p><strong>Müşteri:</strong> {{ proposal.client_name or '-' }}</p>
+                <p><strong>E-posta:</strong> {{ proposal.client_email or '-' }}</p>
+                <p><strong>Telefon:</strong> {{ proposal.client_phone or '-' }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if proposal.description %}
+    <div class="description">
+        <h3>Açıklama</h3>
+        <p>{{ proposal.description|nl2br }}</p>
+    </div>
+    {% endif %}
+
+    {% if proposal.items %}
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;">#</th>
+                <th style="width: 30%;">Ürün Adı</th>
+                <th style="width: 25%;">Açıklama</th>
+                <th style="width: 8%;">Miktar</th>
+                <th style="width: 12%;">Birim Fiyat</th>
+                <th style="width: 8%;">KDV%</th>
+                <th style="width: 12%;">Toplam</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set subtotal = 0 %}
+            {% set total_tax = 0 %}
+            {% for item in proposal.items %}
+            {% set subtotal = subtotal + item.subtotal %}
+            {% set total_tax = total_tax + item.tax_amount %}
+            <tr>
+                <td class="text-center">{{ loop.index }}</td>
+                <td class="font-bold">{{ item.name }}</td>
+                <td>{{ item.description or '-' }}</td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-right">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(item.unit_price) }}</td>
+                <td class="text-center">%{{ item.tax_rate }}</td>
+                <td class="text-right font-bold">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(item.total_price) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-row">
+            <div class="total-label">Ara Toplam:</div>
+            <div class="total-value">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(subtotal) }}</div>
+        </div>
+        <div class="total-row">
+            <div class="total-label">KDV Toplamı:</div>
+            <div class="total-value">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(total_tax) }}</div>
+        </div>
+        <div class="total-row grand-total">
+            <div class="total-label">GENEL TOPLAM:</div>
+            <div class="total-value">{{ proposal.get_currency_symbol() }}{{ "{:,.2f}".format(proposal.total_amount) }}</div>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px; color: #666;">
+        <h3>Bu teklifte henüz ürün bulunmamaktadır.</h3>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Bu teklif {{ proposal.created_at.strftime('%d.%m.%Y') }} tarihinde oluşturulmuştur.</p>
+        <p>Teklif geçerlilik süresi: 30 gün</p>
+    </div>
+</body>
+</html>

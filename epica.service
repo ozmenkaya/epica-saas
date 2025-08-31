@@ -1,0 +1,54 @@
+# Epica SaaS - Systemd Service Configuration
+# /etc/systemd/system/epica.service
+
+[Unit]
+Description=Epica SaaS Gunicorn Application
+After=network.target postgresql.service redis.service
+Requires=postgresql.service redis.service
+
+[Service]
+Type=notify
+User=epica
+Group=epica
+WorkingDirectory=/var/www/epica
+Environment=PATH=/var/www/epica/venv/bin
+EnvironmentFile=/var/www/epica/.env
+ExecStart=/var/www/epica/venv/bin/gunicorn \
+    --name epica_saas \
+    --workers 4 \
+    --worker-class gevent \
+    --worker-connections 1000 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --timeout 60 \
+    --keep-alive 5 \
+    --bind 127.0.0.1:8000 \
+    --bind 127.0.0.1:8001 \
+    --bind 127.0.0.1:8002 \
+    --pid /var/run/epica/epica.pid \
+    --access-logfile /var/log/epica/access.log \
+    --error-logfile /var/log/epica/error.log \
+    --log-level info \
+    --capture-output \
+    app_saas:app
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+PIDFile=/var/run/epica/epica.pid
+Restart=always
+RestartSec=10
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/epica /var/log/epica /var/run/epica
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=32768
+
+[Install]
+WantedBy=multi-user.target

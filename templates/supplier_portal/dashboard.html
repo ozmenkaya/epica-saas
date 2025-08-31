@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Tedarikçi Paneli{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Üst Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="bi bi-truck me-3"></i>Hoş Geldiniz, {{ current_supplier.name }}
+                            </h2>
+                            <p class="mb-0">
+                                <i class="bi bi-building me-2"></i>{{ current_supplier.company }}
+                            </p>
+                            <small>
+                                <i class="bi bi-star-fill me-1"></i>Değerlendirme: {{ current_supplier.rating }}/5 |
+                                <i class="bi bi-tag me-1"></i>{{ current_supplier.category or 'Kategori belirtilmemiş' }}
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('supplier_logout') }}" class="btn btn-dark">
+                                <i class="bi bi-box-arrow-right me-2"></i>Çıkış
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menü -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-pills nav-fill">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('supplier_dashboard') }}">
+                                <i class="bi bi-house-door me-2"></i>Ana Sayfa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('supplier_price_requests') }}">
+                                <i class="bi bi-clipboard-data me-2"></i>Fiyat Talepleri
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="alert('Ürün yönetimi yakında eklenecek')">
+                                <i class="bi bi-box-seam me-2"></i>Ürünlerim
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="alert('Teklif geçmişi yakında eklenecek')">
+                                <i class="bi bi-clock-history me-2"></i>Teklif Geçmişi
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-0">{{ products|length }}</h3>
+                            <p class="mb-0">Toplam Ürün</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-box-seam display-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% set active_count = 0 %}
+                            {% for product in products %}
+                                {% if product.is_active %}
+                                    {% set active_count = active_count + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            <h3 class="mb-0">{{ active_count }}</h3>
+                            <p class="mb-0">Aktif Ürün</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle display-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% set low_stock_count = 0 %}
+                            {% for product in products %}
+                                {% if product.stock_quantity <= product.min_stock_level %}
+                                    {% set low_stock_count = low_stock_count + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            <h3 class="mb-0">{{ low_stock_count }}</h3>
+                            <p class="mb-0">Düşük Stok</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-exclamation-triangle display-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-0">₺{{ "{:,.0f}".format(products|sum(attribute='sale_price') or 0) }}</h3>
+                            <p class="mb-0">Toplam Değer</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-currency-dollar display-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ürünler Listesi -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>Ürünlerim
+                    </h5>
+                    <a href="#" class="btn btn-warning" onclick="addNewProduct()">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Ürün
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if products %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Ürün Adı</th>
+                                        <th>SKU</th>
+                                        <th>Kategori</th>
+                                        <th>Stok</th>
+                                        <th>Satış Fiyatı</th>
+                                        <th>Durum</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ product.name }}</strong>
+                                            {% if product.brand %}
+                                                <br><small class="text-muted">{{ product.brand }} {{ product.model or '' }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td><code>{{ product.sku or '-' }}</code></td>
+                                        <td>
+                                            {% if product.category_id %}
+                                                <span class="badge" style="background-color: {{ product.category.color }}">
+                                                    <i class="{{ product.category.icon }} me-1"></i>{{ product.category.name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if product.stock_quantity <= product.min_stock_level %}bg-danger{% else %}bg-success{% endif %}">
+                                                {{ product.stock_quantity }} {{ product.unit }}
+                                            </span>
+                                            {% if product.stock_quantity <= product.min_stock_level %}
+                                                <i class="bi bi-exclamation-triangle text-danger" title="Düşük stok uyarısı"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td><strong>₺{{ "{:,.2f}".format(product.sale_price) }}</strong></td>
+                                        <td>
+                                            {% if product.is_active %}
+                                                <span class="badge bg-success">Aktif</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Pasif</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" onclick="editProduct({{ product.id }})" title="Düzenle">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-outline-{% if product.is_active %}secondary{% else %}success{% endif %}" 
+                                                        onclick="toggleProductStatus({{ product.id }})" 
+                                                        title="{% if product.is_active %}Pasifleştir{% else %}Aktifleştir{% endif %}">
+                                                    <i class="bi bi-{% if product.is_active %}pause{% else %}play{% endif %}"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger" onclick="deleteProduct({{ product.id }})" title="Sil">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-box-seam display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz ürün eklenmemiş</h5>
+                            <p class="text-muted">İlk ürününüzü eklemek için "Yeni Ürün" butonuna tıklayın.</p>
+                            <button class="btn btn-warning" onclick="addNewProduct()">
+                                <i class="bi bi-plus-circle me-2"></i>İlk Ürünü Ekle
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ürün Ekleme/Düzenleme Modal -->
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="product-modal-title">Yeni Ürün Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="product-name" class="form-label">Ürün Adı *</label>
+                            <input type="text" class="form-control" id="product-name" name="name" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="product-sku" class="form-label">SKU/Kod</label>
+                            <input type="text" class="form-control" id="product-sku" name="sku">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="product-brand" class="form-label">Marka</label>
+                            <input type="text" class="form-control" id="product-brand" name="brand">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="product-model" class="form-label">Model</label>
+                            <input type="text" class="form-control" id="product-model" name="model">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="product-purchase-price" class="form-label">Alış Fiyatı (₺)</label>
+                            <input type="number" class="form-control" id="product-purchase-price" name="purchase_price" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="product-sale-price" class="form-label">Satış Fiyatı (₺) *</label>
+                            <input type="number" class="form-control" id="product-sale-price" name="sale_price" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="product-tax-rate" class="form-label">KDV Oranı (%)</label>
+                            <select class="form-select" id="product-tax-rate" name="tax_rate">
+                                <option value="0">%0</option>
+                                <option value="1">%1</option>
+                                <option value="8">%8</option>
+                                <option value="18">%18</option>
+                                <option value="20" selected>%20</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="product-stock" class="form-label">Stok Miktarı</label>
+                            <input type="number" class="form-control" id="product-stock" name="stock_quantity" min="0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="product-min-stock" class="form-label">Min. Stok</label>
+                            <input type="number" class="form-control" id="product-min-stock" name="min_stock_level" min="0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="product-unit" class="form-label">Birim</label>
+                            <input type="text" class="form-control" id="product-unit" name="unit" value="Adet">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="product-description" class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="product-description" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-warning" onclick="saveProduct()">
+                    <i class="bi bi-check-circle me-2"></i>Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentEditingProductId = null;
+
+function addNewProduct() {
+    currentEditingProductId = null;
+    document.getElementById('product-modal-title').textContent = 'Yeni Ürün Ekle';
+    document.getElementById('product-form').reset();
+    
+    const modal = new bootstrap.Modal(document.getElementById('productModal'));
+    modal.show();
+}
+
+function editProduct(productId) {
+    // Bu fonksiyon geliştirilecek - şimdilik basit alert
+    alert('Ürün düzenleme özelliği yakında eklenecek!');
+}
+
+function toggleProductStatus(productId) {
+    if (!confirm('Ürün durumunu değiştirmek istediğinizden emin misiniz?')) {
+        return;
+    }
+    
+    // Bu fonksiyon geliştirilecek
+    alert('Durum değiştirme özelliği yakında eklenecek!');
+}
+
+function deleteProduct(productId) {
+    if (!confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
+        return;
+    }
+    
+    // Bu fonksiyon geliştirilecek
+    alert('Silme özelliği yakında eklenecek!');
+}
+
+function saveProduct() {
+    // Bu fonksiyon geliştirilecek
+    alert('Kaydetme özelliği yakında eklenecek!');
+}
+</script>
+{% endblock %}
